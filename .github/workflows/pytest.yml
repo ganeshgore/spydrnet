@@ -1,0 +1,12 @@
+on: push
+name: on push
+jobs:
+  SpyDrNetPytest:
+    name: Functional unit tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Run Pytest for SpyDrNet
+      uses: cclauss/GitHub-Action-for-pytest@master
+      with:
+        args: pytest -v
