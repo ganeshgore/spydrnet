@@ -105,6 +105,11 @@ class Port(Bundle):
             raise TypeError(
                 "Type {} cannot be assigned to direction".format(type(value)))
 
+    def change_name(self, value):
+        self.name = value
+        for eachP in self.pins:
+            eachP.wire.cable.name = value
+
     @property
     def pins(self):
         """Get a list of the pins that are in the port"""
