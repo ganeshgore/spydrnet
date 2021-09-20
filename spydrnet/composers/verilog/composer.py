@@ -6,7 +6,7 @@ import spydrnet.parsers.verilog.verilog_tokens as vt
 
 class Composer:
 
-    def __init__(self):
+    def __init__(self, definition_list=None, write_blackbox=False):
         self.file = None
         self.direction_string_map = dict()
         self.direction_string_map[Port.Direction.IN] = "input"
@@ -15,6 +15,9 @@ class Composer:
         self.direction_string_map[Port.Direction.UNDEFINED] = "/* undefined port direction */ inout"
         self.written = set()
         self.indent_count = 4  # set the indentation level for various components
+        self.write_blackbox = write_blackbox
+        self.definition_list = definition_list
+
 
     def run(self, ir, file_out="out.v"):
         self._open_file(file_out)
@@ -94,9 +97,14 @@ class Composer:
 
     def _write_module(self, definition):
         '''write the constraints then the module header then the module body'''
+        if self.definition_list:
+            if not (definition.name in self.definition_list):
+                return
         if definition.library.name == "SDN_VERILOG_ASSIGNMENT":
             return  # don't write assignment definitions
         if definition.library.name == "SDN.verilog_primitives":
+            if not self.write_blackbox:
+                return
             self.file.write(vt.CELL_DEFINE)
             self.file.write(vt.NEW_LINE)
         self._write_star_constraints(definition)
