@@ -535,6 +535,50 @@ class Definition(FirstClassElement):
             self.remove_child(eachM)
         return newMod, MergedModule, RenameMap
 
+    def MergePins( self, pins=None, testrun=False):
+
+        duplicatePins = []
+        defPort = list(self.get_ports())
+        for fromPort,toPort in combinations(defPort, 2):
+            if fromPort is toPort:
+                continue
+            elif len(fromPort.pins) == len(toPort.pins):
+                sameNet = True
+                for eachPin1, eachPin2 in zip(fromPort.pins,toPort.pins):
+                    for eachInst in self.references:
+                        eachPin1 = eachInst.pins[eachPin1]
+                        eachPin2 = eachInst.pins[eachPin2]
+                        if not eachPin1.wire == eachPin2.wire:
+                            sameNet = False
+                if sameNet:
+                    print(f"Can Merge {fromPort.name} {toPort.name}")
+                    duplicatePins.append((fromPort, toPort))
+
+        if testrun:
+            return duplicatePins
+
+        for port1, port2 in duplicatePins[::-1]:
+            print(f"[info] Merging {port1.name} {port2.name}")
+            for eachP1Pin in port1.pins:
+                ww = eachP1Pin.wire
+                wwIndex = eachP1Pin.wire.index()
+
+                # Remove all internal connection
+                wwP2= port2.pins[eachP1Pin.index()].wire
+                for eachPin in wwP2.pins:
+                    if isinstance(eachPin, OuterPin):
+                        eachPin.wire.disconnect_pin(eachPin)
+                        ww.connect_pin(eachPin)
+
+                # TODO : Hacked
+                if wwP2.cable in self.cables:
+                    self.remove_cable(wwP2.cable)
+            # TODO : Hacked
+            if port2 in self.ports:
+                self.remove_port(port2)
+        return duplicatePins
+
+
     def _clone_rip_and_replace(self, memo):
         """If an instance that is a reference of this definition was cloned then update the list of references of the definition.
 
