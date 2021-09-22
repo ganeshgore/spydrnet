@@ -35,6 +35,7 @@ class HTMLComposer:
         self.write_blackbox = write_blackbox
         self.definition_list = definition_list
         self.ElkJSON = ''
+        self.edgeID = 1
         self.ModuleList = {}
 
     def run(self, ir, file_out="out.v"):
@@ -53,7 +54,7 @@ class HTMLComposer:
         od["_children"]= []
         od["properties"]= {
                 "org.eclipse.elk.layered.mergeEdges": 1,
-                "org.eclipse.elk.portConstraints": "FIXED_ORDER"
+                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
             }
         return od
 
@@ -101,7 +102,7 @@ class HTMLComposer:
             "hwMeta": {},
             "properties": {
                 "org.eclipse.elk.layered.mergeEdges": 1,
-                "org.eclipse.elk.portConstraints": "FIXED_ORDER"
+                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
                 }
         }
 
@@ -114,7 +115,7 @@ class HTMLComposer:
             "hwMeta": { "bodyText": name, "cls": "Process",},
             "properties": {
                 "org.eclipse.elk.layered.mergeEdges": 1,
-                "org.eclipse.elk.portConstraints": "FIXED_ORDER"
+                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
                 }
         }
 
@@ -131,7 +132,8 @@ class HTMLComposer:
                         edgeBase["sourcePort"] = eachPin.name
                     else:
                         edge = deepcopy(edgeBase)
-                        edge["id"] += str(indx)
+                        edge["id"] = self.edgeID
+                        self.edgeID += 1
                         edge["target"] = "/".join(eachPin.name.split("/")[:-1]) or "top"
                         edge["targetPort"] = eachPin.name
                         curr_pointer["_edges"].append(edge)
@@ -142,9 +144,10 @@ class HTMLComposer:
             print(eachTopLevelInstance.name)
             node = self._get_default_module_template(eachTopLevelInstance)
             self._create_component_body(eachTopLevelInstance, node)
-            pprint(node)
             curr_pointer["_children"].append(node)
-
+            for child in eachTopLevelInstance.get_hinstances():
+                self._create_top_component_tree(eachTopLevelInstance, node)
+        self._add_edges(netlist, curr_pointer)
 
     def _compose(self, netlist):
         """ Identifies the top level instance """
@@ -161,7 +164,7 @@ class HTMLComposer:
 
 
         self._create_top_component_tree(netlist, TopNode)
-        self._add_edges(netlist, TopNode)
+        # self._add_edges(netlist, TopNode)
         self._write_html()
 
     def _write_html(self):
