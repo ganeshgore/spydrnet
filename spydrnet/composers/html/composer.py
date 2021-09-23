@@ -122,21 +122,22 @@ class HTMLComposer:
     def _add_edges(self, netlist, curr_pointer):
         for eachhCable in netlist.get_hcables():
             eachCable = eachhCable.item
-            edgeBase = self._get_default_net_template(eachCable)
+            edge = self._get_default_net_template(eachCable)
             hWires = list(eachhCable.get_hwires())
             TotalWires = len(hWires)
             if TotalWires == 1:
+                edge["id"] = self.edgeID
+                self.edgeID += 1
                 for indx, eachPin in enumerate(hWires[0].get_hpins()):
                     if indx == 0:
-                        edgeBase["source"] = "/".join(eachPin.name.split("/")[:-1]) or "top"
-                        edgeBase["sourcePort"] = eachPin.name
+                        edge["sources"].append([
+                            "/".join(eachPin.name.split("/")[:-1]) or "top",
+                            eachPin.name])
                     else:
-                        edge = deepcopy(edgeBase)
-                        edge["id"] = self.edgeID
-                        self.edgeID += 1
-                        edge["target"] = "/".join(eachPin.name.split("/")[:-1]) or "top"
-                        edge["targetPort"] = eachPin.name
-                        curr_pointer["_edges"].append(edge)
+                        edge["targets"].append([
+                            "/".join(eachPin.name.split("/")[:-1]) or "top",
+                            eachPin.name])
+                curr_pointer["_edges"].append(edge)
 
 
     def _create_top_component_tree(self, netlist, curr_pointer, depth):
