@@ -535,48 +535,74 @@ class Definition(FirstClassElement):
             self.remove_child(eachM)
         return newMod, MergedModule, RenameMap
 
-    def MergePins( self, pins=None, testrun=False):
-
-        duplicatePins = []
+    def OptPins( self, pins=None, dryrun=False, merge=True, absorb=True):
+        """
+        This method optimizes the definitions pins
+        dryrun : Just performs the dryrun and list the pins which can be
+                  merged or absorbed
+        pins : only consider specific pins, provide filter function
+        absorb : if two pins are only connected to each other they
+                    will be absorbed and internal connection will be made
+        merge : if two pins are connected to each other and few other
+                    instances, one of the pin will be absorbed and other
+                    will exist
+        """
+        duplicatePins = [] # Set of all pins which can be merged or absorbed
+        absorbPins = [] # Subset of duplicate pins
         defPort = list(self.get_ports())
-        for fromPort,toPort in combinations(defPort, 2):
-            if fromPort is toPort:
-                continue
-            elif len(fromPort.pins) == len(toPort.pins):
+
+        # Iterate over all the ports pairs of the definition
+        for fromPort, toPort in combinations(defPort, 2):
+            if len(fromPort.pins) == len(toPort.pins):
+                # Compare only when port has same width
                 sameNet = True
+                singleWire = True
                 for eachPin1, eachPin2 in zip(fromPort.pins,toPort.pins):
                     for eachInst in self.references:
                         eachPin1 = eachInst.pins[eachPin1]
                         eachPin2 = eachInst.pins[eachPin2]
                         if not eachPin1.wire == eachPin2.wire:
                             sameNet = False
+                            break
+                        elif singleWire:
+                            singleWire = set(eachPin1.wire.pins) == set((eachPin1, eachPin2))
+
                 if sameNet:
-                    print(f"Can Merge {fromPort.name} {toPort.name}")
-                    duplicatePins.append((fromPort, toPort))
+                    # Check if frompin exist in the previous pairs
+                    alreadyPaired = next((dupliPins for dupliPins in duplicatePins if fromPort in dupliPins), None)
+                    if alreadyPaired:
+                        if not toPort in alreadyPaired:
+                            alreadyPaired.append(toPort)
+                    else:
+                        portPair = [fromPort, toPort]
+                        duplicatePins.append(portPair)
+                    if singleWire:
+                        absorbPins.append(portPair)
 
-        if testrun:
-            return duplicatePins
 
-        for port1, port2 in duplicatePins[::-1]:
-            print(f"[info] Merging {port1.name} {port2.name}")
-            for eachP1Pin in port1.pins:
-                ww = eachP1Pin.wire
-                wwIndex = eachP1Pin.wire.index()
+        if not dryrun:
+            for ports in duplicatePins:
+                print(f"[info] Merged Ports{[port.name for port in ports]}")
 
-                # Remove all internal connection
-                wwP2= port2.pins[eachP1Pin.index()].wire
-                for eachPin in wwP2.pins:
-                    if isinstance(eachPin, OuterPin):
-                        eachPin.wire.disconnect_pin(eachPin)
-                        ww.connect_pin(eachPin)
+                for eachP1Pin in ports[0].pins:
+                    ww = eachP1Pin.wire
+                    for eachPort in ports[1:]:
+                        # Remove all internal connection
+                        wwP2= eachPort.pins[eachP1Pin.index()].wire
+                        for eachPin in wwP2.pins:
+                            if isinstance(eachPin, OuterPin):
+                                # Selects pins connected to the instance
+                                eachPin.wire.disconnect_pin(eachPin)
+                                ww.connect_pin(eachPin)
 
-                # TODO : Hacked
-                if wwP2.cable in self.cables:
-                    self.remove_cable(wwP2.cable)
-            # TODO : Hacked
-            if port2 in self.ports:
-                self.remove_port(port2)
-        return duplicatePins
+                for eachPort in ports[1:]:
+                    self.remove_cable(eachPort.pins[0].wire.cable)
+                    self.remove_port(eachPort)
+                if ports in absorbPins:
+                    self.remove_cable(ports[0].pins[0].wire.cable)
+                    self.remove_port(ports[0])
+
+        return duplicatePins if merge else absorbPins if absorb else None
 
 
     def _clone_rip_and_replace(self, memo):
