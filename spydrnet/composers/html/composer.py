@@ -139,15 +139,18 @@ class HTMLComposer:
                         curr_pointer["_edges"].append(edge)
 
 
-    def _create_top_component_tree(self, netlist, curr_pointer):
+    def _create_top_component_tree(self, netlist, curr_pointer, depth):
+        if depth > self.depth:
+            return
         for eachTopLevelInstance in netlist.get_hinstances():
             print(eachTopLevelInstance.name)
             node = self._get_default_module_template(eachTopLevelInstance)
             self._create_component_body(eachTopLevelInstance, node)
             curr_pointer["_children"].append(node)
-            for child in eachTopLevelInstance.get_hinstances():
-                self._create_top_component_tree(eachTopLevelInstance, node)
+            # for child in eachTopLevelInstance.get_hinstances():
+            self._create_top_component_tree(eachTopLevelInstance, node, depth+1)
         self._add_edges(netlist, curr_pointer)
+
 
     def _compose(self, netlist):
         """ Identifies the top level instance """
@@ -163,8 +166,8 @@ class HTMLComposer:
             TopNode["ports"].append(portNode)
 
 
-        self._create_top_component_tree(netlist, TopNode)
-        # self._add_edges(netlist, TopNode)
+        self._create_top_component_tree(netlist, TopNode, 1)
+        self.ElkJSON["hwMeta"]["maxId"] = self.edgeID
         self._write_html()
 
     def _write_html(self):
@@ -173,10 +176,10 @@ class HTMLComposer:
         <!DOCTYPE html><html><head>
         <meta charset="utf-8">
         <title>SpyDrNet Schematic Render</title>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.js"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/elkjs@0.7.0/lib/elk.bundled.js"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.min.js"></script>
-        <link href="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.min.css" rel="stylesheet">
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.css" rel="stylesheet">
         <style> body { margin: 0; background-color: white; } </style> </head>
         <body>
             <svg id="scheme-placeholder"></svg>
