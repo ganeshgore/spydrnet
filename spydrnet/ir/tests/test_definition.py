@@ -44,6 +44,18 @@ class TestDefinition(unittest.TestCase):
         self.assertFalse(port in self.definition.ports)
         self.assertIsNone(port.definition)
 
+    def test_disconnect_port(self):
+        """Checks if remove port clears the connected inner pin
+        """
+        port = self.definition.create_port()
+        cable = self.definition.create_cable()
+        p1 = port.create_pin()
+        w1 = cable.create_wire()
+        w1.connect_pin(p1)
+        self.definition.disconnect_port(port)
+        self.assertTrue(w1.pins == [])
+        self.assertTrue(p1 in port.pins)
+
     @unittest.expectedFailure
     def test_remove_ports_from_outside_definition(self):
         port = sdn.Port()

@@ -186,6 +186,12 @@ class Definition(FirstClassElement):
             for pin in port.pins:
                 reference._pins[pin] = OuterPin(reference, pin)
 
+    def disconnect_port(self, port):
+        for pin in port.pins:
+            if pin.wire:
+                pin.wire.disconnect_pin(pin)
+            del pin
+
     def remove_port(self, port):
         """Remove a port from the definition.
 
