@@ -603,6 +603,32 @@ class Definition(FirstClassElement):
         return duplicatePins if merge else absorbPins if absorb else None
 
 
+    def sanity_check_cables(self):
+        allWires = list(self.get_wires())
+        for eachCables in self.get_cables():
+            ww = eachCables.wires
+            assert eachCables.is_scalar == (len(ww)==1), \
+                    f"Wrong is_scalar attribute for {eachCables.name}"
+            for eachWire in ww:
+                assert eachWire.cable == eachCables, \
+                    f"Wrong cable attribute on wire {eachWire} "
+                allWires.remove(eachWire)
+        assert allWires == [], "{len(allWires)} Wires are not in cables"
+
+
+    def sanity_check_ports(self):
+        allPins = list(self.get_pins())
+        for eachPort in self.get_ports():
+            pp = eachPort.pins
+            assert eachPort.is_scalar == (len(pp)==1), \
+                    f"Wrong is_scalar attribute for {eachPort.name}"
+            for eachPin in pp:
+                assert eachPin.port == eachPort, \
+                    f"Wrong cable attribute on wire {eachPin} "
+                allPins.remove(eachPin)
+        assert allPins == [], "{len(allPins)} Wires are not in cables"
+
+
     def _clone_rip_and_replace(self, memo):
         """If an instance that is a reference of this definition was cloned then update the list of references of the definition.
 
