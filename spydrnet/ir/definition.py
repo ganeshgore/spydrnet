@@ -581,8 +581,7 @@ class Definition(FirstClassElement):
 
 
         if not dryrun:
-            for ports in duplicatePins:
-                print(f"[info] Merged Ports{[port.name for port in ports]}")
+            for ports in duplicatePins[::-1]:
 
                 for eachP1Pin in ports[0].pins:
                     ww = eachP1Pin.wire
@@ -599,7 +598,6 @@ class Definition(FirstClassElement):
                     self.remove_cable(eachPort.pins[0].wire.cable)
                     self.remove_port(eachPort)
                 if ports in absorbPins:
-                    self.remove_cable(ports[0].pins[0].wire.cable)
                     self.remove_port(ports[0])
 
         return duplicatePins if merge else absorbPins if absorb else None
