@@ -489,9 +489,6 @@ class Definition(FirstClassElement):
 
         # ===== Interate over each module and create new module
         for index, eachM in enumerate(instances_list):
-            print(f"******************************************************")
-            print(f"Iterating {eachM.name} [{eachM.reference.name}]")
-            print(f"******************************************************")
 
             RenameMap[eachM.reference.name]= {}
             RenameMap[eachM.reference.name][index] = {}
