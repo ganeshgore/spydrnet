@@ -76,10 +76,8 @@ class HTMLComposer:
               "name": f"{cableInstance.name}" if not segement else f"{cableInstance.name}[{segement}]",
                "cssClass": "link-style0",
               },
-          "source": "",
-          "sourcePort": "",
-          "target": "",
-          "targetPort": ""
+          "sources": [],
+          "targets": [],
         }
 
     def _create_component_body(self, hinstance, node):
@@ -108,7 +106,7 @@ class HTMLComposer:
 
     def _create_top_block(self, name="unnamed block"):
         return {
-            "id": "top",
+            "id": self.top_instance,
             "_children": [],
             "_edges": [],
             "ports": [],
@@ -131,11 +129,11 @@ class HTMLComposer:
                 for indx, eachPin in enumerate(hWires[0].get_hpins()):
                     if indx == 0:
                         edge["sources"].append([
-                            "/".join(eachPin.name.split("/")[:-1]) or "top",
+                            "/".join(eachPin.name.split("/")[:-1]) or self.top_instance,
                             eachPin.name])
                     else:
                         edge["targets"].append([
-                            "/".join(eachPin.name.split("/")[:-1]) or "top",
+                            "/".join(eachPin.name.split("/")[:-1]) or self.top_instance,
                             eachPin.name])
                 curr_pointer["_edges"].append(edge)
 
@@ -144,7 +142,6 @@ class HTMLComposer:
         if depth > self.depth:
             return
         for eachTopLevelInstance in netlist.get_hinstances():
-            print(eachTopLevelInstance.name)
             node = self._get_default_module_template(eachTopLevelInstance)
             self._create_component_body(eachTopLevelInstance, node)
             curr_pointer["_children"].append(node)
@@ -156,9 +153,10 @@ class HTMLComposer:
     def _compose(self, netlist):
         """ Identifies the top level instance """
         instance = netlist.top_instance
+        self.top_instance = instance.name
         assert instance != None, " Missing top instance "
         self.ElkJSON = self._create_top_frame()
-        TopNode = self._create_top_block(instance.reference.name)
+        TopNode = self._create_top_block(instance.name)
         self.ElkJSON["children"].append(TopNode)
 
         for eachPort in chain(instance.get_ports(filter=InputFilter), instance.get_ports(filter=OutputFilter)):
@@ -212,6 +210,7 @@ class HTMLComposer:
                 }
 
                 var hwSchematic = new d3.HwSchematic(svg);
+                hwSchematic._PERF = true;
                 var zoom = d3.zoom();
                 zoom.on("zoom", function applyTransform(ev) {
                     hwSchematic.root.attr("transform", ev.transform)
