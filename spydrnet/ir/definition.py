@@ -204,6 +204,9 @@ class Definition(FirstClassElement):
         """
         assert port.definition == self, "Port is not included in definition"
         self._remove_port(port)
+        self.disconnect_port(port)
+        for pin in port.pins:
+            port.remove_pin(pin)
         self._ports.remove(port)
 
     def remove_ports_from(self, ports):
