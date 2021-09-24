@@ -535,7 +535,7 @@ class Definition(FirstClassElement):
             self.remove_child(eachM)
         return newMod, MergedModule, RenameMap
 
-    def OptPins( self, pins=None, dryrun=False, merge=True, absorb=True):
+    def OptPins( self, pins=lambda x: True, dryrun=False, merge=True, absorb=True):
         """
         This method optimizes the definitions pins
         dryrun : Just performs the dryrun and list the pins which can be
@@ -549,7 +549,7 @@ class Definition(FirstClassElement):
         """
         duplicatePins = [] # Set of all pins which can be merged or absorbed
         absorbPins = [] # Subset of duplicate pins
-        defPort = list(self.get_ports())
+        defPort = list([x for x in self.get_ports() if pins(x.name)])
 
         # Iterate over all the ports pairs of the definition
         for fromPort, toPort in combinations(defPort, 2):
