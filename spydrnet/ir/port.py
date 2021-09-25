@@ -37,7 +37,7 @@ class Port(Bundle):
 
         name - (str) the name of this instance
         properties - (dict) the dictionary which holds the properties
-        id_downto - (bool) set the downto status. Downto is False if the right index is higher than the left one, True otherwise
+        is_downto - (bool) set the downto status. Downto is False if the right index is higher than the left one, True otherwise
         is_scalar - (bool) set the scalar status. Return True if the item is a scalar False otherwise.
         lower_index - (int) get the value of the lower index of the array.
         direction - (Enum) Define the possible directions for a given port. (UNDEFINED, INOUT, IN, OUT)
@@ -197,7 +197,7 @@ class Port(Bundle):
         self._pins.remove(pin)
 
     def remove_pins_from(self, pins):
-        """Remove several pins from the port at once. 
+        """Remove several pins from the port at once.
 
         The wires are disconnected from the pins that are removed.
 
@@ -218,7 +218,7 @@ class Port(Bundle):
         self._pins = list(x for x in self._pins if x not in exclude_pins)
 
     def _remove_pin(self, pin):
-        """Internal pin removal function. 
+        """Internal pin removal function.
         Disconnects the wires from the pin and remvoes all the pins reference to other pins."""
         global_callback._call_port_remove_pin(self, pin)
         if self.definition:
