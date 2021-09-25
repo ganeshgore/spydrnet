@@ -163,6 +163,17 @@ class Cable(Bundle):
                     return False
         return True
 
+    def connect_port(self, port):
+        print(type(port))
+        assert isinstance(port, Port), "Argument to connect_port should be port"
+        assert port.size, "Port has no pins"
+
+        for wire in self.wires:
+            if port.is_downto:
+                wire.connect_pin(port.pins[wire.index()])
+            else:
+                wire.connect_pin(port.pins[-(wire.index()+1)])
+
     def _clone_rip_and_replace(self, memo):
         """Remove from its current environment and place it into the new cloned environment with references held in the memo dictionary"""
         for w in self._wires:

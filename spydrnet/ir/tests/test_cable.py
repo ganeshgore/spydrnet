@@ -76,3 +76,25 @@ class TestCable(unittest.TestCase):
         self.assertTrue(self.cable.check_concat())
         port2.add_pin(NewPin, position=0)
         self.assertFalse(self.cable.check_concat())
+
+    def test_connect_port_1(self):
+        port = sdn.Port(name="p0", direction=sdn.Port.Direction.IN)
+        port.create_pins(4)
+        w = self.cable.create_wires(4)
+        self.assertIsNone(self.cable.connect_port(port))
+        self.assertTrue(port.pins[0].wire is w[0])
+        self.assertTrue(port.pins[1].wire is w[1])
+        self.assertTrue(port.pins[2].wire is w[2])
+        self.assertTrue(port.pins[3].wire is w[3])
+
+    def test_connect_port_2(self):
+        port = sdn.Port(name="p0",
+            direction=sdn.Port.Direction.IN,
+            is_downto=False)
+        port.create_pins(4)
+        w = self.cable.create_wires(4)
+        self.assertIsNone(self.cable.connect_port(port))
+        self.assertTrue(port.pins[0].wire is w[3])
+        self.assertTrue(port.pins[1].wire is w[2])
+        self.assertTrue(port.pins[2].wire is w[1])
+        self.assertTrue(port.pins[3].wire is w[0])
