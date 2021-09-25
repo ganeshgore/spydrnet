@@ -14,8 +14,11 @@ import spydrnet.parsers.verilog.verilog_tokens as vt
 from spydrnet.composers.html.SpyDrNetEncoder import SpyDrNetJSONEncoder
 
 
-InputFilter  = lambda x: x.direction == Port.Direction.IN
-OutputFilter = lambda x: (x.direction == Port.Direction.OUT) or (x.direction == Port.Direction.INOUT)
+def InputFilter(x): return x.direction == Port.Direction.IN
+
+
+def OutputFilter(x): return (x.direction == Port.Direction.OUT) or (
+    x.direction == Port.Direction.INOUT)
 
 
 class HTMLComposer:
@@ -30,7 +33,6 @@ class HTMLComposer:
         self.direction_side_map[Port.Direction.IN] = "WEST"
         self.direction_side_map[Port.Direction.OUT] = "EAST"
         self.direction_side_map[Port.Direction.INOUT] = "WEST"
-        # self.direction_string_map[Port.Direction.UNDEFINED] = "/* undefined port
         self.depth = 2
         self.write_blackbox = write_blackbox
         self.definition_list = definition_list
@@ -43,40 +45,39 @@ class HTMLComposer:
         self.file = file_out
         self._compose(ir)
 
-
     def _get_default_module_template(self, name, defName):
         od = OrderedDict()
-        od["id"]= name
-        od["ports"]= []
-        od["hwMeta"]= { "bodyText": defName, "cls": "Process", }
-        od["_edges"]= []
-        od["_children"]= []
-        od["properties"]= {
-                "org.eclipse.elk.layered.mergeEdges": 1,
-                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
-            }
+        od["id"] = name
+        od["ports"] = []
+        od["hwMeta"] = {"bodyText": defName, "cls": "Process", }
+        od["_edges"] = []
+        od["_children"] = []
+        od["properties"] = {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+        }
         return od
 
     def _get_default_port_template(self, portInstance):
-        return  {
-            "id": portInstance.name,
-            "direction": self.direction_string_map[portInstance.direction],
-            "hwMeta": { "name": portInstance.name },
-            "properties": {
-                "index": 1,
-                "side": self.direction_side_map[portInstance.direction]
-            }
+        od = OrderedDict()
+        od["id"] = portInstance.name
+        od["direction"] = self.direction_string_map[portInstance.direction]
+        od["hwMeta"] = {"name": portInstance.name}
+        od["properties"] = {
+            "index": 1,
+            "side": self.direction_side_map[portInstance.direction]
         }
+        return od
 
     def _get_default_net_template(self, cableInstance, segement=0):
-        return  {
-          "id": cableInstance.name,
-          "hwMeta": {
-              "name": f"{cableInstance.name}" if not segement else f"{cableInstance.name}[{segement}]",
-               "cssClass": "link-style0",
-              },
-          "sources": [],
-          "targets": [],
+        return {
+            "id": cableInstance.name,
+            "hwMeta": {
+                "name": f"{cableInstance.name}" if not segement else f"{cableInstance.name}[{segement}]",
+                "cssClass": "link-style0",
+            },
+            "sources": [],
+            "targets": [],
         }
 
     def _create_component_body(self, hinstance, node):
@@ -87,7 +88,7 @@ class HTMLComposer:
 
         for eachPort in chain(instance.get_ports(filter=InputFilter), instance.get_ports(filter=OutputFilter)):
             portNode = self._get_default_port_template(eachPort)
-            portNode["id"] = hinstance.name + "/" +portNode["id"]
+            portNode["id"] = hinstance.name + "/" + portNode["id"]
             node["ports"].append(portNode)
 
     def _create_top_frame(self):
@@ -100,7 +101,7 @@ class HTMLComposer:
             "properties": {
                 "org.eclipse.elk.layered.mergeEdges": 1,
                 "org.eclipse.elk.portConstraints": "FIXED_SIDE"
-                }
+            }
         }
 
     def _create_top_block(self, name="unnamed block"):
@@ -109,11 +110,11 @@ class HTMLComposer:
             "_children": [],
             "_edges": [],
             "ports": [],
-            "hwMeta": { "bodyText": name, "cls": "Process",},
+            "hwMeta": {"bodyText": name, "cls": "Process", },
             "properties": {
                 "org.eclipse.elk.layered.mergeEdges": 1,
                 "org.eclipse.elk.portConstraints": "FIXED_SIDE"
-                }
+            }
         }
 
     def _add_edges(self, netlist, curr_pointer):
@@ -128,11 +129,13 @@ class HTMLComposer:
                 for indx, eachPin in enumerate(hWires[0].get_hpins()):
                     if indx == 0:
                         edge["sources"].append([
-                            "/".join(eachPin.name.split("/")[:-1]) or self.top_instance,
+                            "/".join(eachPin.name.split("/")
+                                     [:-1]) or self.top_instance,
                             eachPin.name])
                     else:
                         edge["targets"].append([
-                            "/".join(eachPin.name.split("/")[:-1]) or self.top_instance,
+                            "/".join(eachPin.name.split("/")
+                                     [:-1]) or self.top_instance,
                             eachPin.name])
                 curr_pointer["_edges"].append(edge)
             elif eachCable.item.check_cancat():
@@ -168,8 +171,6 @@ class HTMLComposer:
                 # print("===============")
                 # print(connectedPorts)
 
-
-
     def _create_top_component_tree(self, netlist, curr_pointer, depth):
         if depth > self.depth:
             return
@@ -182,7 +183,6 @@ class HTMLComposer:
             # for child in eachTopLInst.get_hinstances():
             self._create_top_component_tree(eachTopLInst, node, depth+1)
         self._add_edges(netlist, curr_pointer)
-
 
     def _compose(self, netlist):
         """ Identifies the top level instance """
@@ -198,14 +198,13 @@ class HTMLComposer:
             portNode["id"] = portNode["id"]
             TopNode["ports"].append(portNode)
 
-
         self._create_top_component_tree(netlist, TopNode, 1)
         self.ElkJSON["hwMeta"]["maxId"] = self.edgeID
         self._write_html()
 
     def _write_json(self):
         return str(json.dumps(self.ElkJSON, cls=SpyDrNetJSONEncoder,
-            sort_keys=False, indent=2))
+                              sort_keys=False, indent=2))
 
     def _write_html(self):
         fp = open(self.file, "w")
