@@ -92,17 +92,18 @@ class HTMLComposer:
             node["ports"].append(portNode)
 
     def _create_top_frame(self):
-        return {
-            "id": "top_frame",
-            "children": [],
-            "edges": [],
-            "ports": [],
-            "hwMeta": {},
-            "properties": {
-                "org.eclipse.elk.layered.mergeEdges": 1,
-                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
-            }
+        od = OrderedDict()
+        od["id"] = "top_frame"
+        od["children"] = []
+        od["edges"] = []
+        od["ports"] = []
+        od["hwMeta"] = {}
+        od["properties"] = {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
         }
+        return od
+
 
     def _create_top_block(self, name="unnamed block"):
         return {
@@ -138,8 +139,8 @@ class HTMLComposer:
                                      [:-1]) or self.top_instance,
                             eachPin.name])
                 curr_pointer["_edges"].append(edge)
-            elif eachCable.item.check_cancat():
-                pass
+            # elif eachCable.item.check_cancat():
+            #     pass
                 # TODO
                 # print(f"\n\nSkipping {eachCable.name} {len(eachCable.item.wires)}")
                 # connectedPorts = []
@@ -259,7 +260,7 @@ class HTMLComposer:
                 .on("dblclick.zoom", null)
         \n""")
         fp.write("hwSchematic.bindData(\n")
-        self._write_json()
+        fp.write(self._write_json())
         fp.write(")")
         fp.write("""
         </script>
