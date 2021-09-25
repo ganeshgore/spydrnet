@@ -446,9 +446,9 @@ class Definition(FirstClassElement):
         instance_list = []
         for instances_list, instance_name in instances_list_tuple:
             newDef, newInst, _ = self.merge_instance(instances_list,
-                                new_definition_name=f"{new_definition_name}_{instance_name}",
-                                new_instance_name=instance_name,
-                                pin_map=pin_map)
+                                                     new_definition_name=f"{new_definition_name}_{instance_name}",
+                                                     new_instance_name=instance_name,
+                                                     pin_map=pin_map)
             instance_list.append(newInst)
             if not mainDef:
                 mainDef = newDef
@@ -468,22 +468,25 @@ class Definition(FirstClassElement):
                   get_pin_name(<definition_name:<str>, <pin_name:<str>,
                                 <instance_name:<str>)
         """
-        RenameMap = {} # Stores the final rename map
+        RenameMap = {}  # Stores the final rename map
 
         # ====== Input Sanity checks
         for eachModule in instances_list:
-            assert isinstance(eachModule, Instance), "Modulelist contains none non-intance object"
+            assert isinstance(
+                eachModule, Instance), "Modulelist contains none non-intance object"
 
         if pin_map:
-            if isinstance(pin_map,dict):
+            if isinstance(pin_map, dict):
                 pin_map_copy = pin_map
-                pin_map = lambda x, y, _: pin_map_copy.get(x,{}).get(y,{})
+                def pin_map(x, y, _): return pin_map_copy.get(x, {}).get(y, {})
             if not callable(pin_map):
-                print("pin_map argument should be dictionary or function, received {type(pin_map)}" )
+                print(
+                    "pin_map argument should be dictionary or function, received {type(pin_map)}")
 
         # ====== Create a new definition
         if not new_definition_name:
-            new_def_name = "_".join([each.reference.name for each in instances_list]) + "_merged"
+            new_def_name = "_".join(
+                [each.reference.name for each in instances_list]) + "_merged"
             print(f"Inferred definition name {new_def_name} ")
         else:
             new_def_name = new_definition_name
@@ -492,31 +495,31 @@ class Definition(FirstClassElement):
         # ===== Create instance of the definition
         if not new_instance_name:
             new_instance_name = f"{new_def_name}_1"
-        MergedModule = self.create_child( name=new_instance_name,
-                        reference=newMod)
+        MergedModule = self.create_child(name=new_instance_name,
+                                         reference=newMod)
 
         # ===== Interate over each module and create new module
         for index, eachM in enumerate(instances_list):
 
-            RenameMap[eachM.reference.name]= {}
+            RenameMap[eachM.reference.name] = {}
             RenameMap[eachM.reference.name][index] = {}
             currMap = RenameMap[eachM.reference.name][index]
             IntInst = newMod.create_child(name=eachM.name,
-                                        reference=eachM.reference)
+                                          reference=eachM.reference)
             # Iterate over each port of current instance
             for p in eachM.get_ports():
-                pClone = p.clone() # It copied all pins, wires and cables
+                pClone = p.clone()  # It copied all pins, wires and cables
 
                 for eachSuffix in [""]+[f"_{i}" for i in range(10)]:
                     newName = pClone.name + eachSuffix
                     if not len(list(newMod.get_ports(newName))):
                         break
                 newCable = newMod.create_cable(
-                                name = newName,
-                                is_downto = pClone.is_downto,
-                                is_scalar = pClone.is_scalar,
-                                lower_index = pClone.lower_index,
-                            )
+                    name=newName,
+                    is_downto=pClone.is_downto,
+                    is_scalar=pClone.is_scalar,
+                    lower_index=pClone.lower_index,
+                )
 
                 # Create connection inside new definition
                 for eachPClone, eachP in zip(pClone.pins, p.pins):
@@ -527,7 +530,6 @@ class Definition(FirstClassElement):
                 newMod.add_port(pClone)
 
                 currMap[p.name] = newName
-
 
                 for eachPin in p.pins:
                     instOutPin = eachM.pins[eachPin]
@@ -540,7 +542,7 @@ class Definition(FirstClassElement):
             self.remove_child(eachM)
         return newMod, MergedModule, RenameMap
 
-    def OptPins( self, pins=lambda x: True, dryrun=False, merge=True, absorb=True):
+    def OptPins(self, pins=lambda x: True, dryrun=False, merge=True, absorb=True):
         """
         This method optimizes the definitions pins
         dryrun : Just performs the dryrun and list the pins which can be
@@ -552,8 +554,8 @@ class Definition(FirstClassElement):
                     instances, one of the pin will be absorbed and other
                     will exist
         """
-        duplicatePins = [] # Set of all pins which can be merged or absorbed
-        absorbPins = [] # Subset of duplicate pins
+        duplicatePins = []  # Set of all pins which can be merged or absorbed
+        absorbPins = []  # Subset of duplicate pins
         defPort = list([x for x in self.get_ports() if pins(x.name)])
 
         # Iterate over all the ports pairs of the definition
@@ -562,7 +564,7 @@ class Definition(FirstClassElement):
                 # Compare only when port has same width
                 sameNet = True
                 singleWire = True
-                for eachPin1, eachPin2 in zip(fromPort.pins,toPort.pins):
+                for eachPin1, eachPin2 in zip(fromPort.pins, toPort.pins):
                     for eachInst in self.references:
                         eachPin1 = eachInst.pins[eachPin1]
                         eachPin2 = eachInst.pins[eachPin2]
@@ -570,11 +572,13 @@ class Definition(FirstClassElement):
                             sameNet = False
                             break
                         elif singleWire:
-                            singleWire = set(eachPin1.wire.pins) == set((eachPin1, eachPin2))
+                            singleWire = set(eachPin1.wire.pins) == set(
+                                (eachPin1, eachPin2))
 
                 if sameNet:
                     # Check if frompin exist in the previous pairs
-                    alreadyPaired = next((dupliPins for dupliPins in duplicatePins if fromPort in dupliPins), None)
+                    alreadyPaired = next(
+                        (dupliPins for dupliPins in duplicatePins if fromPort in dupliPins), None)
                     if alreadyPaired:
                         if not toPort in alreadyPaired:
                             alreadyPaired.append(toPort)
@@ -584,7 +588,6 @@ class Definition(FirstClassElement):
                     if singleWire:
                         absorbPins.append(portPair)
 
-
         if not dryrun:
             for ports in duplicatePins[::-1]:
 
@@ -592,7 +595,7 @@ class Definition(FirstClassElement):
                     ww = eachP1Pin.wire
                     for eachPort in ports[1:]:
                         # Remove all internal connection
-                        wwP2= eachPort.pins[eachP1Pin.index()].wire
+                        wwP2 = eachPort.pins[eachP1Pin.index()].wire
                         for eachPin in wwP2.pins:
                             if isinstance(eachPin, OuterPin):
                                 eachPin.wire.disconnect_pin(eachPin)
@@ -613,8 +616,8 @@ class Definition(FirstClassElement):
         allWires = list(self.get_wires())
         for eachCables in self.get_cables():
             ww = eachCables.wires
-            assert eachCables.is_scalar == (len(ww)==1), \
-                    f"Wrong is_scalar attribute for {eachCables.name}"
+            assert eachCables.is_scalar == (len(ww) == 1), \
+                f"Wrong is_scalar attribute for {eachCables.name}"
             for eachWire in ww:
                 assert eachWire.cable == eachCables, \
                     f"Wrong cable attribute on wire {eachWire} "
@@ -625,8 +628,8 @@ class Definition(FirstClassElement):
         allPins = list(self.get_pins())
         for eachPort in self.get_ports():
             pp = eachPort.pins
-            assert eachPort.is_scalar == (len(pp)==1), \
-                    f"Wrong is_scalar attribute for {eachPort.name}"
+            assert eachPort.is_scalar == (len(pp) == 1), \
+                f"Wrong is_scalar attribute for {eachPort.name}"
             for eachPin in pp:
                 assert eachPin.port == eachPort, \
                     f"Wrong cable attribute on wire {eachPin} "
