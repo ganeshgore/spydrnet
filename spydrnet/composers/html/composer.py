@@ -44,12 +44,11 @@ class HTMLComposer:
         self._compose(ir)
 
 
-    def _get_default_module_template(self, hinstance):
-        instance = hinstance.item
+    def _get_default_module_template(self, name, defName):
         od = OrderedDict()
-        od["id"]= hinstance.name
+        od["id"]= name
         od["ports"]= []
-        od["hwMeta"]= { "bodyText": instance.name, "cls": "Process", }
+        od["hwMeta"]= { "bodyText": defName, "cls": "Process", }
         od["_edges"]= []
         od["_children"]= []
         od["properties"]= {
@@ -118,10 +117,10 @@ class HTMLComposer:
         }
 
     def _add_edges(self, netlist, curr_pointer):
-        for eachhCable in netlist.get_hcables():
-            eachCable = eachhCable.item
+        for eachCable in netlist.get_hcables():
+            eachCable = eachCable.item
             edge = self._get_default_net_template(eachCable)
-            hWires = list(eachhCable.get_hwires())
+            hWires = list(eachCable.get_hwires())
             TotalWires = len(hWires)
             if TotalWires == 1:
                 edge["id"] = self.edgeID
@@ -136,17 +135,52 @@ class HTMLComposer:
                             "/".join(eachPin.name.split("/")[:-1]) or self.top_instance,
                             eachPin.name])
                 curr_pointer["_edges"].append(edge)
+            elif eachCable.item.check_cancat():
+                pass
+                # TODO
+                # print(f"\n\nSkipping {eachCable.name} {len(eachCable.item.wires)}")
+                # connectedPorts = []
+                # connectedPortsNumber = []
+                # for eachW in eachCable.get_hwires():
+                #     if not connectedPorts:
+                #         connectedPortsNumber = len(eachW.item.pins)
+                #         for eachp in eachW.item.pins:
+                #             if isinstance(eachp, OuterPin):
+                #                 connectedPorts.append(eachp.inner_pin.port)
+                #             else:
+                #                 connectedPorts.append(eachp.port)
+                #     else:
+                #         currentPorts = []
+                #         if not connectedPortsNumber == len(eachW.item.pins):
+                #             return
+                #         for eachp in eachW.item.pins:
+                #             if isinstance(eachp, OuterPin):
+                #                 currentPorts.append(eachp.inner_pin.port)
+                #             else:
+                #                 currentPorts.append(eachp.port)
+                #         # print(currentPorts)
+                #         # print(connectedPorts)
+                #         # print(set(currentPorts) == set(connectedPorts))
+                #         # if not (set(currentPorts) == set(connectedPorts)):
+                #         #     print("NotSame")
+
+                #     print("**************")
+                # print("===============")
+                # print(connectedPorts)
+
 
 
     def _create_top_component_tree(self, netlist, curr_pointer, depth):
         if depth > self.depth:
             return
-        for eachTopLevelInstance in netlist.get_hinstances():
-            node = self._get_default_module_template(eachTopLevelInstance)
-            self._create_component_body(eachTopLevelInstance, node)
+        for eachTopLInst in netlist.get_hinstances():
+            node = self._get_default_module_template(
+                eachTopLInst.name,
+                eachTopLInst.item.name)
+            self._create_component_body(eachTopLInst, node)
             curr_pointer["_children"].append(node)
-            # for child in eachTopLevelInstance.get_hinstances():
-            self._create_top_component_tree(eachTopLevelInstance, node, depth+1)
+            # for child in eachTopLInst.get_hinstances():
+            self._create_top_component_tree(eachTopLInst, node, depth+1)
         self._add_edges(netlist, curr_pointer)
 
 
@@ -168,6 +202,10 @@ class HTMLComposer:
         self._create_top_component_tree(netlist, TopNode, 1)
         self.ElkJSON["hwMeta"]["maxId"] = self.edgeID
         self._write_html()
+
+    def _write_json(self):
+        return str(json.dumps(self.ElkJSON, cls=SpyDrNetJSONEncoder,
+            sort_keys=False, indent=2))
 
     def _write_html(self):
         fp = open(self.file, "w")
@@ -222,8 +260,7 @@ class HTMLComposer:
                 .on("dblclick.zoom", null)
         \n""")
         fp.write("hwSchematic.bindData(\n")
-        fp.write(json.dumps(self.ElkJSON, cls=SpyDrNetJSONEncoder,
-            sort_keys=False, indent=2))
+        self._write_json()
         fp.write(")")
         fp.write("""
         </script>
