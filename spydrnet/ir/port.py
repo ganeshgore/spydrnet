@@ -111,6 +111,11 @@ class Port(Bundle):
             eachP.wire.cable.name = value
 
     @property
+    def size(self):
+        """Get a list of the pins that are in the port"""
+        return len(self._pins)
+
+    @property
     def pins(self):
         """Get a list of the pins that are in the port"""
         return ListView(self._pins)

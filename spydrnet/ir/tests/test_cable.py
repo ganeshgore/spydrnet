@@ -48,3 +48,31 @@ class TestCable(unittest.TestCase):
         self.assertIsNone(wire.cable)
         self.assertTrue(wire_included in self.cable.wires)
         self.assertEqual(wire_included.cable, self.cable)
+
+    def test_check_concat(self):
+        port0 = sdn.Port(name="p0", direction=sdn.Port.Direction.OUT)
+        port1 = sdn.Port(name="p1", direction=sdn.Port.Direction.IN)
+        port2 = sdn.Port(name="p2", direction=sdn.Port.Direction.IN)
+        port0.create_pins(4)
+        port1.create_pins(4)
+        port2.create_pins(4)
+        self.cable.create_wires(4)
+        for wire in self.cable.wires:
+            wire.connect_pin(port0.pins[wire.index()])
+            wire.connect_pin(port1.pins[wire.index()])
+            wire.connect_pin(port2.pins[wire.index()])
+        self.assertTrue(self.cable.check_concat())
+        port1._pins = port1.pins[::-1]
+        self.assertFalse(self.cable.check_concat())
+        port1._pins = port1.pins[::-1]
+        self.assertTrue(self.cable.check_concat())
+        self.cable.wires[-1].disconnect_pin(port2.pins[-1])
+        self.assertFalse(self.cable.check_concat())
+        self.cable.wires[-1].connect_pin(port2.pins[-1])
+        self.assertTrue(self.cable.check_concat())
+        NewPin = port2.create_pin()
+        self.assertFalse(self.cable.check_concat())
+        port2.remove_pin(NewPin)
+        self.assertTrue(self.cable.check_concat())
+        port2.add_pin(NewPin, position=0)
+        self.assertFalse(self.cable.check_concat())

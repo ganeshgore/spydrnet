@@ -52,6 +52,10 @@ class Cable(Bundle):
         return self._wires
 
     @property
+    def size(self):
+        return len(self._wires)
+
+    @property
     def wires(self):
         """Gets a list of wires that are in this cable"""
         return ListView(self._wires)
@@ -142,6 +146,22 @@ class Cable(Bundle):
         """Internal wire removal call. dissociates the wire from the cable"""
         global_callback._call_cable_remove_wire(self, wire)
         wire._cable = None
+
+    def check_concat(self):
+        """ This fucntion check if the cable is concatenated while connecting to other ports
+        """
+        assert self.size, "Cable does not contain any wires"
+
+        connectedPorts = len(self._wires[0].pins)
+        for wire in self._wires:
+            if not connectedPorts == len(wire.pins):
+                return False
+            for pin in wire.pins:
+                if not pin.port.size == self.size:
+                    return False
+                if not pin.index() == wire.index():
+                    return False
+        return True
 
     def _clone_rip_and_replace(self, memo):
         """Remove from its current environment and place it into the new cloned environment with references held in the memo dictionary"""
