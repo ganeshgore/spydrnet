@@ -1,5 +1,6 @@
 from spydrnet.ir.bundle import Bundle
 from spydrnet.ir.wire import Wire
+from spydrnet.ir.port import Port
 from spydrnet.ir.views.listview import ListView
 from spydrnet.global_state import global_callback
 from spydrnet.global_state.global_callback import _call_create_cable
@@ -165,7 +166,8 @@ class Cable(Bundle):
 
     def connect_port(self, port):
         print(type(port))
-        assert isinstance(port, Port), "Argument to connect_port should be port"
+        assert isinstance(port, Port), \
+            "Argument to connect_port should be port"
         assert port.size, "Port has no pins"
 
         for wire in self.wires:
@@ -173,6 +175,17 @@ class Cable(Bundle):
                 wire.connect_pin(port.pins[wire.index()])
             else:
                 wire.connect_pin(port.pins[-(wire.index()+1)])
+
+    def merge_cables(self, cables):
+        for cable in cables:
+            assert isinstance(cable, Cable), \
+                "All arguments should be cable instance"
+
+        for cable in cables[::-1]:
+            wires = list(cable.wires)
+            for wire in wires[::-1]:
+                cable.remove_wire(wire)
+                self.add_wire(wire)
 
     def _clone_rip_and_replace(self, memo):
         """Remove from its current environment and place it into the new cloned environment with references held in the memo dictionary"""
