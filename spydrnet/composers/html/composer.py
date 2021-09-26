@@ -39,6 +39,7 @@ class HTMLComposer:
         self.ElkJSON = ''
         self.edgeID = 1
         self.ModuleList = {}
+        self.top_instance = None
 
     def run(self, ir, file_out="out.v"):
         """ Main method to run composer """
@@ -49,9 +50,9 @@ class HTMLComposer:
         od = OrderedDict()
         od["id"] = name
         od["ports"] = []
-        od["hwMeta"] = {"bodyText": defName, "cls": "Process", }
-        od["_edges"] = []
         od["_children"] = []
+        od["_edges"] = []
+        od["hwMeta"] = {"bodyText": defName, "cls": "Process", }
         od["properties"] = {
             "org.eclipse.elk.layered.mergeEdges": 1,
             "org.eclipse.elk.portConstraints": "FIXED_SIDE"
@@ -69,16 +70,40 @@ class HTMLComposer:
         }
         return od
 
-    def _get_default_net_template(self, cableInstance, segement=0):
-        return {
-            "id": cableInstance.name,
-            "hwMeta": {
-                "name": f"{cableInstance.name}" if not segement else f"{cableInstance.name}[{segement}]",
-                "cssClass": "link-style0",
-            },
-            "sources": [],
-            "targets": [],
+    def _get_default_net_template(self, cableInstance):
+        od = OrderedDict()
+        od["id"] = cableInstance.name
+        od["hwMeta"] = {"name": cableInstance.name, "cssClass": "link-style0"}
+        od["sources"] = []
+        od["targets"] = []
+        return od
+
+    def _create_top_frame(self):
+        od = OrderedDict()
+        od["id"] = "top_frame"
+        od["ports"] = []
+        od["children"] = []
+        od["edges"] = []
+        od["hwMeta"] = {}
+        od["properties"] = {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
         }
+        return od
+
+    def _create_top_block(self, name="unnamed"):
+        od = OrderedDict()
+        od["id"] = self.top_instance
+        od["ports"] = []
+        od["_children"] = []
+        od["_edges"] = []
+        od["hwMeta"] = {"bodyText": self.top_instance,
+                        "cls": "Process"}
+        od["properties"] = {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+        }
+        return od
 
     def _create_component_body(self, hinstance, node):
         """ This creates the component body with input and Output ports
@@ -90,87 +115,6 @@ class HTMLComposer:
             portNode = self._get_default_port_template(eachPort)
             portNode["id"] = hinstance.name + "/" + portNode["id"]
             node["ports"].append(portNode)
-
-    def _create_top_frame(self):
-        od = OrderedDict()
-        od["id"] = "top_frame"
-        od["children"] = []
-        od["edges"] = []
-        od["ports"] = []
-        od["hwMeta"] = {}
-        od["properties"] = {
-            "org.eclipse.elk.layered.mergeEdges": 1,
-            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
-        }
-        return od
-
-
-    def _create_top_block(self, name="unnamed block"):
-        return {
-            "id": self.top_instance,
-            "_children": [],
-            "_edges": [],
-            "ports": [],
-            "hwMeta": {"bodyText": name, "cls": "Process", },
-            "properties": {
-                "org.eclipse.elk.layered.mergeEdges": 1,
-                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
-            }
-        }
-
-    def _add_edges(self, netlist, curr_pointer):
-        for eachCable in netlist.get_hcables():
-            eachCable = eachCable.item
-            edge = self._get_default_net_template(eachCable)
-            hWires = list(eachCable.get_hwires())
-            TotalWires = len(hWires)
-            if TotalWires == 1:
-                edge["id"] = self.edgeID
-                self.edgeID += 1
-                for indx, eachPin in enumerate(hWires[0].get_hpins()):
-                    if indx == 0:
-                        edge["sources"].append([
-                            "/".join(eachPin.name.split("/")
-                                     [:-1]) or self.top_instance,
-                            eachPin.name])
-                    else:
-                        edge["targets"].append([
-                            "/".join(eachPin.name.split("/")
-                                     [:-1]) or self.top_instance,
-                            eachPin.name])
-                curr_pointer["_edges"].append(edge)
-            # elif eachCable.item.check_cancat():
-            #     pass
-                # TODO
-                # print(f"\n\nSkipping {eachCable.name} {len(eachCable.item.wires)}")
-                # connectedPorts = []
-                # connectedPortsNumber = []
-                # for eachW in eachCable.get_hwires():
-                #     if not connectedPorts:
-                #         connectedPortsNumber = len(eachW.item.pins)
-                #         for eachp in eachW.item.pins:
-                #             if isinstance(eachp, OuterPin):
-                #                 connectedPorts.append(eachp.inner_pin.port)
-                #             else:
-                #                 connectedPorts.append(eachp.port)
-                #     else:
-                #         currentPorts = []
-                #         if not connectedPortsNumber == len(eachW.item.pins):
-                #             return
-                #         for eachp in eachW.item.pins:
-                #             if isinstance(eachp, OuterPin):
-                #                 currentPorts.append(eachp.inner_pin.port)
-                #             else:
-                #                 currentPorts.append(eachp.port)
-                #         # print(currentPorts)
-                #         # print(connectedPorts)
-                #         # print(set(currentPorts) == set(connectedPorts))
-                #         # if not (set(currentPorts) == set(connectedPorts)):
-                #         #     print("NotSame")
-
-                #     print("**************")
-                # print("===============")
-                # print(connectedPorts)
 
     def _create_top_component_tree(self, netlist, curr_pointer, depth):
         if depth > self.depth:
@@ -185,6 +129,30 @@ class HTMLComposer:
             self._create_top_component_tree(eachTopLInst, node, depth+1)
         self._add_edges(netlist, curr_pointer)
 
+    def _add_edges(self, netlist, curr_pointer):
+        for eachCable in netlist.get_hcables():
+            hWires = list(eachCable.get_hwires())
+            edge = self._get_default_net_template(eachCable)
+            if eachCable.item.size == 0:
+                continue
+            elif (eachCable.item.size == 1) or eachCable.item.check_concat():
+                edge["id"] = self.edgeID
+                self.edgeID += 1
+                for indx, eachPin in enumerate(hWires[0].get_hpins()):
+                    if eachCable.item.size > 1:
+                        edge["hwMeta"]["cssClass"] = "link-style1"
+                    ePinN = eachPin.item.port.name if isinstance(
+                        eachPin.item, InnerPin) else eachPin.item.inner_pin.port.name
+                    source = "/".join(eachPin.name.split("/")
+                                      [:-1]) or self.top_instance
+
+                    if indx == 0:
+                        edge["sources"].append([source, source+"/"+ePinN])
+                    else:
+                        edge["targets"].append([source, source+"/"+ePinN])
+
+                curr_pointer["_edges"].append(edge)
+
     def _compose(self, netlist):
         """ Identifies the top level instance """
         instance = netlist.top_instance
@@ -196,7 +164,7 @@ class HTMLComposer:
 
         for eachPort in chain(instance.get_ports(filter=InputFilter), instance.get_ports(filter=OutputFilter)):
             portNode = self._get_default_port_template(eachPort)
-            portNode["id"] = portNode["id"]
+            portNode["id"] = self.top_instance +"/"+ portNode["id"]
             TopNode["ports"].append(portNode)
 
         self._create_top_component_tree(netlist, TopNode, 1)
