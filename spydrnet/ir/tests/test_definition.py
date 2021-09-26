@@ -173,3 +173,7 @@ class TestDefinition(unittest.TestCase):
         self.definition.create_cable()
         self.assertFalse(self.definition.is_leaf()), "Definition with a cable and child instance is considered a leaf" \
                                                      " cell"
+
+    @unittest.expectedFailure
+    def test_combine_ports(self):
+        assert False

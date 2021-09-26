@@ -612,6 +612,40 @@ class Definition(FirstClassElement):
 
         return duplicatePins if merge else absorbPins if absorb else None
 
+    def combine_ports(self, newPortName, ports):
+        """ This can combine multiple input or output ports togther
+            to create a bus structure.
+        """
+
+        direction = ports[0].direction
+        for p in ports[1:]:
+            assert isinstance(p, Port), \
+                f"combine_ports can combine Ports found {type(p)}"
+            assert direction == p.direction, \
+                f"combine_ports combines only input or output ports, \
+                found {type(p.direction)}"
+            assert self == p.definition, \
+                f"all ports to combine should belong to same definition"
+
+        newPort = self.create_port(newPortName, direction=direction)
+        newCable = self.create_cable(newPortName, is_scalar=newPort.is_scalar)
+        for p in ports:
+            newPin = newPort.create_pin()
+            pp = p.pins[0]
+            ppWire = pp.wire
+            # Switch Instances connection
+            for instance in self.references:
+                if instance.pins[pp].is_connected:
+                    instance.pins[pp].wire.connect_pin(instance.pins[newPin])
+            if ppWire:
+            # Switch Internal Wire
+                ppWire.connect_pin(newPin)
+                self.remove_cable(ppWire.cable)
+                ppWire.cable.remove_wire(ppWire)
+                newCable.add_wire(ppWire)
+            self.remove_port(p)
+        return newPort, newCable
+
     def sanity_check_cables(self):
         allWires = list(self.get_wires())
         for eachCables in self.get_cables():
