@@ -11,6 +11,11 @@ class Pin(Element):
         self._wire = None
 
     @property
+    def is_connected(self):
+        """Returns true if pin is connected to the wire"""
+        return bool(self._wire)
+
+    @property
     def wire(self):
         """Get the wire the pin is connected to. This value cannot be modified directly by the end user."""
         return self._wire
