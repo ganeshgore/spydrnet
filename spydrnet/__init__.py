@@ -48,6 +48,7 @@ for filename in glob.glob(os.path.join(base_dir, 'support_files', 'EDIF_netlists
     example_netlist_names.append(basename[:basename.index('.')])
 example_netlist_names.sort()
 
+from spydrnet.util.shell import launch_shell
 
 def load_example_netlist_by_name(name):
     assert name in example_netlist_names, "Example netlist not found"
