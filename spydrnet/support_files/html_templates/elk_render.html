@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Elkjs-SVG</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/elkjs@0.7.0/lib/elk.bundled.js"></script>
+    <script type="text/javascript" src="https://bundle.run/elkjs-svg@0.2.1"></script>
+    <style>
+        svg {
+            display: block;
+            margin: auto;
+        }
+
+        body {
+            margin: 0;
+            background-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="svg-wrapper"></div>
+    <script>
+
+        function viewport() {
+            var e = window,
+                a = 'inner';
+            if (!('innerWidth' in window)) {
+                a = 'client';
+                e = document.documentElement || document.body;
+            }
+            return {
+                width: e[a + 'Width'],
+                height: e[a + 'Height']
+            }
+        }
+
+        var width = viewport().width;
+        var height = viewport().height;
+
+        const graph = {
+            "id": "root",
+            "layoutOptions": {
+                "elk.algorithm": "rectpacking"
+            },
+            "children": [
+                { "id": "n1", "width": 30, "height": 30 },
+                { "id": "n2", "width": 30, "height": 30 },
+                { "id": "n3", "width": 30, "height": 30 }
+            ],
+            "edges": [
+                { "id": "e1", "sources": ["n1"], "targets": ["n2"] },
+                { "id": "e2", "sources": ["n1"], "targets": ["n3"] }
+            ]
+        };
+        const elk = new ELK()
+        var d3SVG;
+        elk.layout(graph)
+            .then(data => {
+                var renderer = new elkjsSvg.Renderer();
+                var svg = renderer.toSvg(data);
+                // var newsvg = document.getElementsByTagName("body");
+                var newsvg = document.getElementById("svg-wrapper");
+                newsvg.innerHTML += svg;
+
+                d3SVG = d3.select('svg')
+                    .attr("width", 1051)
+                    .attr("height", 969)
+                    .attr("preserveAspectRatio", "xMidYMin")
+                    .call(zoom);
+
+            });
+
+        var orig = document.body.onresize;
+        document.body.onresize = function (ev) {
+            if (orig)
+                orig(ev);
+
+            var w = viewport();
+            svg.attr("width", w.width);
+            svg.attr("height", w.height);
+        }
+
+        var zoom = d3.zoom();
+        zoom.on("zoom", function applyTransform(ev) {
+            console.log(ev.transform);
+            console.log(d3SVG.select("g"));
+            d3SVG.select("g").attr("transform", ev.transform);
+        });
+
+    </script>
+</body>
+</html>
