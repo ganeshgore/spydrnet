@@ -6,7 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - name: install requirements
+      run: pip3 install -r requirements.txt && pip3 freeze
     - name: Run Pytest for SpyDrNet
       uses: cclauss/GitHub-Action-for-pytest@master
       with:
-        args: pytest -v
+        args: python3 -m pytest -v
