@@ -7,14 +7,14 @@ SpyDrNet is a tool for the analysis and transformation of structural netlists. A
 .. figure:: figures/hierarchical_netlist.*
    :align: center
 
-   Hierarchical representation of a Netlist 
+   Hierarchical representation of a Netlist
 
 This representation is commonly found in many schematic views of electronic design automation (EDA) or computer aided design (CAD) tools. It presents a top level instance of a definition that in turn instances other definitions. Instances are connected accordingly and connections carry through hierarchical boundaries.
 
 Tool Flow
 ----------
 
-Digital designs for FPGAs are represented as netlists, a list of components and connections. Netlists come from various vendors in many different formats. SpyDrNet allows you to look at and alter a netlist in a language inspecific way. 
+Digital designs for FPGAs are represented as netlists, a list of components and connections. Netlists come from various vendors in many different formats. SpyDrNet allows you to look at and alter a netlist in a language inspecific way.
 
 Netlists flow through SpyDrNet in a three step process (see figure below). First, SpyDrNet parses a netlist into an intermediate represention (IR) that is designed to be easily traversed and effortlessly manipulated. Afterwards, the netlist is composed back into a netlist format that a 3rd-party tool can use. SpyDrNet aims to provide the tools you need to accomplish the netlist analysis and transformation tasks you have in mind without having to reinvent the wheel.
 
@@ -46,7 +46,7 @@ In this tutorial, we will use 'sdn' as a shorcut to access SpyDrNet commands.
 Parsing
 -------
 
-The SpyDrNet parser will take an EDIF/Verilog file and put the information into the SpyDrNet data structure. 
+The SpyDrNet parser will take an EDIF/Verilog file and put the information into the SpyDrNet data structure.
 
 To parse a file, enter the following command for an EDIF file
 
@@ -80,13 +80,13 @@ Library:
     Contains an ordered collection of definitions
 
         Use the following code to see the libraries in our netlist:
-        
+
         .. code-block::
 
             print(netlist.libraries)
 
         This returns the library objects. To see the names of the libraries, use:
-        
+
         .. code-block::
 
             for library in netlist.get_libraries():
@@ -99,13 +99,13 @@ Definition:
     Holds information about an element like its ports, pins, etc. (note: the pins are inner pins...see below). Verilog and System Verilog refer to a definition as a module, VHDL refers to a definition as an entity, and EDIF refers to a definition as a cell.
 
         To see the definitions in the first library, use:
-        
+
         .. code-block::
 
             print(netlist.libraries[0].definitions)
 
         As before, we can use '.name' to see the name of each definition:
-        
+
         .. code-block::
 
             for definition in netlist.libraries[0].get_definitions():
@@ -116,7 +116,7 @@ Ports:
     The input/output ‘slots’ of each definition (e.g. A,B, and Q of a simple AND gate)
 
         To see the ports for the first definition in the first library, run the following:
-        
+
         .. code-block::
 
             definition_1 = netlist.libraries[0].definitions[0]
@@ -126,14 +126,14 @@ Ports:
 Pins:
 ^^^^^
     Found on ports. There are two types of pins: inner and outer (see the following explanation). Most of the time, you don't need to worry about what type a pin is because SpyDrNet takes care of it for you.
-        
-        **InnerPin**: 
+
+        **InnerPin**:
             Inner pins are in definitions. Every definition has only one set of inner pins.
-        **OuterPin**: 
+        **OuterPin**:
             Outer pins are on instances. Each instance has a set of outer pins that corresponds to its reference definition’s inner pins. Because of this, a definition may have several sets of outer pins. For example, if a definition is instanced five times, it will have five sets of outer pins.
-        
+
         Run the following code to see the types of pins for the instances and definitions in your netlist:
-        
+
         .. code-block::
 
             for instance in netlist.get_instances():
@@ -148,7 +148,7 @@ Pins:
 Wires:
 ^^^^^^
     Wires connect pins to pins and thus connect elements to each other. Wires can connect to as many pins as desired (not just two).
-    
+
 Cables:
 ^^^^^^^
     Cables are bundles of wires. Wires are inside cables.
@@ -159,10 +159,10 @@ Instances:
 
     An instance is also known as a **'child'**.
     The definition instanced is the **'reference'**.
-    The definition that instances the other definition is the **'parent'**. 
-        
+    The definition that instances the other definition is the **'parent'**.
+
         To see the instances in the 'work' library, or library[2], use the following code:
-        
+
         .. code-block::
 
                 for instance in netlist.libraries[2].get_instances():
@@ -187,7 +187,7 @@ Other IR Parts
 
 **Element**
     Most IR classes inherit from this Python class. Objects of this class are referred to as netlist elements. A netlist
-    element contains a dictionary for storing data specific to itself. This is accomplished using Python get/set item 
+    element contains a dictionary for storing data specific to itself. This is accomplished using Python get/set item
     functions, (see :ref:`sec:element-data`).
 
 **Bundle**
@@ -199,9 +199,9 @@ Modifying Netlists
 ------------------
 
     Modifying netlists is made possible through SpyDrNet.
-    
+
     **Renaming**:
-    
+
     .. code-block::
 
         definition_1.name = "a_new_name"
@@ -216,7 +216,7 @@ Modifying Netlists
 
     **Changing Values:**
         From the example :ref:`sphx_glr_auto_examples_vivado_AND_to_OR.py` in the examples tab, the following line of code "[changes] the value in the properties of the LUT2 instance"
-        
+
         .. code-block::
 
             properties[0]["value"] = "4'h" + str(hex(LUT_CONFIG)).upper()[2:]
@@ -232,5 +232,5 @@ To compose a file from a SpyDrNet netlist, enter the following command:
 
     sdn.compose(netlist, '<filename>.edf')
 
-A new EDIF file named '<filename>.edf' will be generated in the working directory. 
+A new EDIF file named '<filename>.edf' will be generated in the working directory.
 To compose a Verilog file, replace 'edf' with 'v'.

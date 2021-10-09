@@ -48,8 +48,30 @@ for filename in glob.glob(os.path.join(base_dir, 'support_files', 'EDIF_netlists
     example_netlist_names.append(basename[:basename.index('.')])
 example_netlist_names.sort()
 
-from spydrnet.util.shell import launch_shell
+# logger for the module
+import logging
+import sys
+LOG_FORMAT = "%(levelname)5s %(filename)s:%(lineno)s (%(threadName)10s) - %(message)s"
 
+logger = logging.getLogger('spydrnet_logs')
+logger.setLevel(logging.DEBUG)
+
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+logger.addHandler(stream_handler)
+
+def enable_file_logging(LOG_LEVEL=None):
+    LOG_LEVEL = LOG_LEVEL or "INFO"
+    file_handler = logging.FileHandler("_spydrnet.log", mode='w')
+    file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    file_handler.setLevel(eval(f"logging.{LOG_LEVEL}"))
+    logger.addHandler(file_handler)
+    return file_handler
+
+# from spydrnet.util.shell import launch_shell
+# from spydrnet.util.renders import start_gui
+from spydrnet.util.get_names import get_names
 def load_example_netlist_by_name(name):
     assert name in example_netlist_names, "Example netlist not found"
     return parse(os.path.join(base_dir, 'support_files', 'EDIF_netlists', name + ".edf.zip"))
