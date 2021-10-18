@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="100%" version="1.1" viewBox="-50,-50,200,200" width="100%">
+    <defs>
+        <symbol id="module1">
+            <rect class="module_boundary" fill="white" height="99" stroke="grey" stroke-width="2" width="99" x="1" y="1"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="78.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="58.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="18.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="38.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="97.0" y="48.0"/>
+        </symbol>
+        <symbol id="AND2">
+            <rect class="module_boundary" fill="white" height="49" stroke="grey" stroke-width="2" width="49" x="1" y="1"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="43.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="38.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="33.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="0.0" y="28.0"/>
+            <rect class="module_pin" fill="black" height="4" rx="2" ry="2" stroke-width="0" width="4" x="47.0" y="38.0"/>
+        </symbol>
+    </defs>
+    <g id="bg">
+        <rect fill="#FFF" height="150" id="background" stroke-width="0" width="150" x="-25" y="-25"/>
+    </g>
+    <g id="mainframe">
+        <g id="mainShapes">
+            <use class="topModule" x="0" xlink:href="#module1" y="0"/>
+            <use class="AND2_1" x="20" xlink:href="#AND2" y="20"/>
+        </g>
+        <g id="mainText">
+            <text alignment-baseline="middle" fill="black" text-anchor="middle" x="50.0" y="10.0">module1</text>
+            <text alignment-baseline="middle" fill="black" text-anchor="middle" x="45.0" y="40">AND2_1</text>
+        </g>
+        <g id="edges">
+            <polyline class="edge" fill="none" onmousemove="showTooltip(evt, 'A');" onmouseout="hideTooltip();" points="2,80 22,65" stroke="black" stroke-width="1"/>
+            <polyline class="edge" fill="none" onmousemove="showTooltip(evt, 'B');" onmouseout="hideTooltip();" points="2,60 22,60" stroke="black" stroke-width="1"/>
+            <polyline class="edge" fill="none" onmousemove="showTooltip(evt, 'C');" onmouseout="hideTooltip();" points="2,40 22,55" stroke="black" stroke-width="1"/>
+            <polyline class="edge" fill="none" onmousemove="showTooltip(evt, 'D');" onmouseout="hideTooltip();" points="2,20 22,50" stroke="black" stroke-width="1"/>
+            <polyline class="edge" fill="none" onmousemove="showTooltip(evt, 'Q');" onmouseout="hideTooltip();" points="99,50 69,60" stroke="black" stroke-width="1"/>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,431 @@
+
+        <!DOCTYPE html><html><head>
+        <meta charset="utf-8">
+        <title>SpyDrNet Schematic Render</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/elkjs@0.7.0/lib/elk.bundled.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.css" rel="stylesheet">
+        <style> body { margin: 0; background-color: white; } </style> </head>
+        <body>
+            <button type="button" onclick="download();">Download JSON</button>
+            <svg id="scheme-placeholder"></svg>
+            <script>
+                var currentFileName = "";
+                const getCircularReplacer = () => {
+                const seen = new WeakSet();
+                return (key, value) => {
+                    if (typeof value === "object" && value !== null) {
+                    if (seen.has(value)) { return;}
+                    seen.add(value);}
+                    return value;};};
+
+                function download() {
+                    var element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+                    encodeURIComponent(JSON.stringify(hwSchematic.layouter.graph, getCircularReplacer(), 2)));
+                    element.setAttribute('download', currentFileName.replace(".json", "mapped.json"));
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                }
+                function viewport() {
+                    var e = window, a = 'inner';
+                    if (!('innerWidth' in window)) {
+                        a = 'client';
+                        e = document.documentElement || document.body;
+                    }
+                    return { width: e[a + 'Width'], height: e[a + 'Height']}
+                }
+
+                var width = viewport().width,
+                    height = viewport().height;
+
+                var svg = d3.select("#scheme-placeholder")
+                    .attr("width", width)
+                    .attr("height", height);
+
+                var orig = document.body.onresize;
+                document.body.onresize = function(ev) {
+                    if (orig)
+                        orig(ev);
+
+                    var w = viewport();
+                    svg.attr("width", w.width);
+                    svg.attr("height", w.height);
+                }
+
+                var hwSchematic = new d3.HwSchematic(svg);
+                hwSchematic.layouter._applyLayout = function(kgraph) {
+                  this.zoomToFit(kgraph);
+                  var nodeMap = {};
+                  return this.graph;
+                };
+
+                hwSchematic._PERF = true;
+                var zoom = d3.zoom();
+                zoom.on("zoom", function applyTransform(ev) {
+                    hwSchematic.root.attr("transform", ev.transform)
+                });
+
+                // disable zoom on doubleclick
+                // because it interferes with component expanding/collapsing
+                svg.call(zoom)
+                .on("dblclick.zoom", null)
+
+hwSchematic.bindData(
+{
+  "id": "top_frame",
+  "ports": [],
+  "children": [
+    {
+      "id": "fpga_top",
+      "ports": [
+        {
+          "id": "fpga_top/IN1",
+          "direction": "INPUT",
+          "hwMeta": { "name": "IN1"},
+          "properties": { "index": 1, "side": "WEST"}},
+        {
+          "id": "fpga_top/IN2",
+          "direction": "INPUT",
+          "hwMeta": { "name": "IN2"},
+          "properties": { "index": 1, "side": "WEST"}},
+        {
+          "id": "fpga_top/OUT1",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": "OUT1"},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "children": [
+        {
+          "id": "fpga_core_uut",
+          "ports": [
+            {
+              "id": "fpga_core_uut/in1",
+              "direction": "INPUT",
+              "hwMeta": { "name": "in1"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "fpga_core_uut/in2",
+              "direction": "INPUT",
+              "hwMeta": { "name": "in2"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "fpga_core_uut/out1",
+              "direction": "OUTPUT",
+              "hwMeta": { "name": "out1"},
+              "properties": { "index": 1, "side": "EAST"}}
+          ],
+          "children": [
+            {
+              "id": "fpga_core_uut/inst_m1_2",
+              "ports": [
+                {
+                  "id": "fpga_core_uut/inst_m1_2/A",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "A"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_2/B",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "B"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_2/D",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "D"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_2/C",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "C"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_2/Q",
+                  "direction": "OUTPUT",
+                  "hwMeta": { "name": "Q"},
+                  "properties": { "index": 1, "side": "EAST"}}
+              ],
+              "children": [],
+              "edges": [],
+              "hwMeta": { "bodyText": "inst_m1_2", "cls": "Process"},
+              "properties": {
+                "org.eclipse.elk.layered.mergeEdges": 1,
+                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+              }
+            },
+            {
+              "id": "fpga_core_uut/inst_m1_1",
+              "ports": [
+                {
+                  "id": "fpga_core_uut/inst_m1_1/A",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "A"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_1/B",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "B"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_1/D",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "D"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_1/C",
+                  "direction": "INPUT",
+                  "hwMeta": { "name": "C"},
+                  "properties": { "index": 1, "side": "WEST"}},
+                {
+                  "id": "fpga_core_uut/inst_m1_1/Q",
+                  "direction": "OUTPUT",
+                  "hwMeta": { "name": "Q"},
+                  "properties": { "index": 1, "side": "EAST"}}
+              ],
+              "children": [],
+              "edges": [],
+              "hwMeta": { "bodyText": "inst_m1_1", "cls": "Process"},
+              "properties": {
+                "org.eclipse.elk.layered.mergeEdges": 1,
+                "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": 1,
+              "hwMeta": { "name": "fpga_core_uut/in1", "cssClass": "link-style1"},
+              "sources": [
+                [
+                  "fpga_core_uut",
+                  "fpga_core_uut/in1"
+                ]
+              ],
+              "targets": [
+                [
+                  "fpga_core_uut/inst_m1_1",
+                  "fpga_core_uut/inst_m1_1/A"
+                ],
+                [
+                  "fpga_core_uut/inst_m1_1",
+                  "fpga_core_uut/inst_m1_1/B"
+                ],
+                [
+                  "fpga_core_uut/inst_m1_2",
+                  "fpga_core_uut/inst_m1_2/D"
+                ]
+              ]},
+            {
+              "id": 2,
+              "hwMeta": { "name": "fpga_core_uut/in2", "cssClass": "link-style0"},
+              "sources": [
+                [
+                  "fpga_core_uut",
+                  "fpga_core_uut/in2"
+                ]
+              ],
+              "targets": [
+                [
+                  "fpga_core_uut/inst_m1_1",
+                  "fpga_core_uut/inst_m1_1/D"
+                ],
+                [
+                  "fpga_core_uut/inst_m1_1",
+                  "fpga_core_uut/inst_m1_1/C"
+                ],
+                [
+                  "fpga_core_uut/inst_m1_2",
+                  "fpga_core_uut/inst_m1_2/A"
+                ],
+                [
+                  "fpga_core_uut/inst_m1_2",
+                  "fpga_core_uut/inst_m1_2/B"
+                ]
+              ]},
+            {
+              "id": 3,
+              "hwMeta": { "name": "fpga_core_uut/out1", "cssClass": "link-style0"},
+              "sources": [
+                [
+                  "fpga_core_uut",
+                  "fpga_core_uut/out1"
+                ]
+              ],
+              "targets": [
+                [
+                  "fpga_core_uut/inst_m1_2",
+                  "fpga_core_uut/inst_m1_2/Q"
+                ]
+              ]},
+            {
+              "id": 4,
+              "hwMeta": { "name": "fpga_core_uut/out", "cssClass": "link-style0"},
+              "sources": [
+                [
+                  "fpga_core_uut/inst_m1_1",
+                  "fpga_core_uut/inst_m1_1/Q"
+                ]
+              ],
+              "targets": [
+                [
+                  "fpga_core_uut/inst_m1_2",
+                  "fpga_core_uut/inst_m1_2/C"
+                ]
+              ]}
+          ],
+          "hwMeta": { "bodyText": "fpga_core_uut", "cls": "Process"},
+          "properties": {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": 5,
+          "hwMeta": { "name": "in1", "cssClass": "link-style1"},
+          "sources": [
+            [
+              "fpga_core_uut",
+              "fpga_core_uut/in1"
+            ]
+          ],
+          "targets": []},
+        {
+          "id": 6,
+          "hwMeta": { "name": "in2", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "fpga_core_uut",
+              "fpga_core_uut/in2"
+            ]
+          ],
+          "targets": []},
+        {
+          "id": 7,
+          "hwMeta": { "name": "out1", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "fpga_core_uut",
+              "fpga_core_uut/out1"
+            ]
+          ],
+          "targets": []}
+      ],
+      "hwMeta": { "bodyText": "fpga_top", "cls": "Process"},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "IN1_port",
+      "ports": [
+        {
+          "id": "IN1",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "children": [],
+      "edges": [],
+      "hwMeta": { "bodyText": "IN1", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "IN2_port",
+      "ports": [
+        {
+          "id": "IN2",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "children": [],
+      "edges": [],
+      "hwMeta": { "bodyText": "IN2", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "OUT1_port",
+      "ports": [
+        {
+          "id": "OUT1",
+          "direction": "INPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "WEST"}}
+      ],
+      "children": [],
+      "edges": [],
+      "hwMeta": { "bodyText": "OUT1", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "IN1_conn",
+      "hwMeta": { "name": "IN1_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "fpga_top",
+          "fpga_top/IN1"
+        ]
+      ],
+      "targets": [
+        [
+          "IN1_port",
+          "IN1"
+        ]
+      ]},
+    {
+      "id": "IN2_conn",
+      "hwMeta": { "name": "IN2_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "fpga_top",
+          "fpga_top/IN2"
+        ]
+      ],
+      "targets": [
+        [
+          "IN2_port",
+          "IN2"
+        ]
+      ]},
+    {
+      "id": "OUT1_conn",
+      "hwMeta": { "name": "OUT1_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "fpga_top",
+          "fpga_top/OUT1"
+        ]
+      ],
+      "targets": [
+        [
+          "OUT1_port",
+          "OUT1"
+        ]
+      ]}
+  ],
+  "hwMeta": { "maxId": 8},
+  "properties": {
+    "org.eclipse.elk.layered.mergeEdges": 1,
+    "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+  }
+});var currentFileName = 'fpga_top.json';
+        </script>
+        </body>
+        </html>

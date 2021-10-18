@@ -7,7 +7,7 @@
 //  │     ┌─────────────┐ │  ┌─────────────┐      │
 //  ├─────┤             │ │  │             │      │
 //  │ n1  │             │ └──┤             │   n3 │
-//  │     │    MOD1     │    │    MOD2     ├──────┤
+//  │     │    mod1     │    │    mod2     ├──────┤
 //  │     │             ├────┤             │      │
 //  │     │             │ ┌──┤             │      │
 //  │     └─────────────┘ │  └─────────────┘      │
@@ -36,12 +36,12 @@ module top
     wire n5;
     wire [1:0]bus1;
 
-    MOD1 mod1_1
+    mod1 mod1_1
     (
         .A(n1),
         .Q(n4)
     );
-    MOD2 mod2_1
+    mod2 mod2_1
     (
         .A(n2),
         .B(n4),
@@ -49,12 +49,12 @@ module top
         .Q(n3)
     );
 
-    MOD1 mod1_2
+    mod1 mod1_2
     (
         .A(n1),
         .Q(n5)
     );
-    MOD2 mod2_2
+    mod2 mod2_2
     (
         .A(n2),
         .B(n5),
@@ -66,7 +66,7 @@ module top
 
 endmodule
 
-module MOD1
+module mod1
 (
     A,
     Q
@@ -80,7 +80,7 @@ module MOD1
 
 endmodule
 
-module MOD2
+module mod2
 (
     A,
     B,

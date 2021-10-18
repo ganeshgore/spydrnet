@@ -147,3 +147,21 @@ class TestInstance(unittest.TestCase):
         self.assertIsNone(outer_pin1.inner_pin)
         self.assertIsNone(outer_pin2.inner_pin)
 
+    def test_check_all_scalar_connections(self):
+        definition = sdn.Definition()
+        self.instance.reference = definition
+        port = definition.create_port("port")
+        port.create_pins(4)
+        w1 = sdn.Cable("Cable1").create_wire()
+        w2 = sdn.Cable("Cable2").create_wire()
+        w3 = sdn.Cable("Cable3").create_wire()
+        w4 = sdn.Cable("Cable4").create_wire()
+        for indx, w in enumerate((w1, w2, w3, w4)):
+            w.connect_pin(self.instance.pins[port.pins[indx]])
+        self.assertTrue(self.instance.check_all_scalar_connections(port))
+        randomPort = sdn.Port()
+        self.assertRaises(AssertionError, \
+            lambda:self.instance.check_all_scalar_connections(randomPort)), \
+                "Random port check should raise error"
+        w2.cable.create_wire()
+        self.assertFalse(self.instance.check_all_scalar_connections(port))

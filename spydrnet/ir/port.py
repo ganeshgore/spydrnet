@@ -111,6 +111,18 @@ class Port(Bundle):
             eachP.wire.cable.name = value
 
     @property
+    def is_input(self):
+        return self.direction == self.Direction.IN
+
+    @property
+    def is_output(self):
+        return self.direction == self.Direction.OUT
+
+    @property
+    def is_inout(self):
+        return self.direction == self.Direction.INOUT
+
+    @property
     def size(self):
         """Get a list of the pins that are in the port"""
         return len(self._pins)
@@ -136,6 +148,16 @@ class Port(Bundle):
         assert len(value_set) == len(value_list) and set(self._pins) == value_set, \
             "Set of values do not match, assignment can only be used to reorder values, values must be unique"
         self._pins = value_list
+
+    @property
+    def inner_wires(self):
+        return (p.wire for p in self.pins if p.wire)
+
+    @property
+    def outer_wires(self, instance):
+        assert instance.reference == self.definition, \
+            "Port does not belong to given instance definition"
+        return (instance.pins[p].wire for p in self.pins if instance.pins[p].wire)
 
     def create_pins(self, pin_count):
         """Create pin_count pins in the given port a downto style syntax is assumed.

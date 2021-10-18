@@ -7,7 +7,6 @@ from spydrnet.ir.cable import Cable
 import json
 from itertools import chain
 from spydrnet.ir.innerpin import InnerPin
-from pprint import pformat, pprint
 from copy import deepcopy
 from collections import OrderedDict
 import spydrnet.parsers.verilog.verilog_tokens as vt
@@ -70,10 +69,10 @@ class HTMLComposer:
         }
         return od
 
-    def _get_default_net_template(self, cableInstance):
+    def _get_default_net_template(self, cable_name):
         od = OrderedDict()
-        od["id"] = cableInstance.name
-        od["hwMeta"] = {"name": cableInstance.name, "cssClass": "link-style0"}
+        od["id"] = cable_name
+        od["hwMeta"] = {"name": cable_name, "cssClass": "link-style0"}
         od["sources"] = []
         od["targets"] = []
         return od
@@ -132,7 +131,7 @@ class HTMLComposer:
     def _add_edges(self, netlist, curr_pointer):
         for eachCable in netlist.get_hcables():
             hWires = list(eachCable.get_hwires())
-            edge = self._get_default_net_template(eachCable)
+            edge = self._get_default_net_template(eachCable.name)
             if eachCable.item.size == 0:
                 continue
             elif (eachCable.item.size == 1) or eachCable.item.check_concat():
@@ -153,6 +152,24 @@ class HTMLComposer:
 
                 curr_pointer["_edges"].append(edge)
 
+
+    def _create_top_level_ports(self, port, node):
+        topPortNode = self._get_default_module_template(port.name, port.name)
+        portNode = self._get_default_port_template(port)
+        topPortNode["hwMeta"]['isExternalPort'] = True
+        topPortNodePort = portNode
+        topPortNodePort["hwMeta"]["name"] = ""
+        topPortNodePort["direction"] = self.direction_string_map[Port.Direction.OUT if (port.direction == Port.Direction.IN) else Port.Direction.IN]
+        topPortNodePort["properties"]["side"] = "WEST" if topPortNodePort["properties"]["side"] == "EAST" else "EAST"
+        topPortNode["ports"].append(topPortNodePort)
+        topPortNode["id"] += "_port"
+        node["children"].append(topPortNode)
+        topPortConn = self._get_default_net_template(f"{port.name}_conn")
+        topPortConn["sources"].append([self.top_instance, f"{self.top_instance}/{port.name}"])
+        topPortConn["targets"].append([f"{port.name}_port", port.name])
+        node["edges"].append(topPortConn)
+
+
     def _compose(self, netlist):
         """ Identifies the top level instance """
         instance = netlist.top_instance
@@ -166,6 +183,7 @@ class HTMLComposer:
             portNode = self._get_default_port_template(eachPort)
             portNode["id"] = self.top_instance +"/"+ portNode["id"]
             TopNode["ports"].append(portNode)
+            self._create_top_level_ports(eachPort, self.ElkJSON)
 
         self._create_top_component_tree(netlist, TopNode, 1)
         self.ElkJSON["hwMeta"]["maxId"] = self.edgeID
@@ -187,8 +205,28 @@ class HTMLComposer:
         <link href="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.css" rel="stylesheet">
         <style> body { margin: 0; background-color: white; } </style> </head>
         <body>
+            <button type="button" onclick="download();">Download JSON</button>
             <svg id="scheme-placeholder"></svg>
             <script>
+                var currentFileName = "";
+                const getCircularReplacer = () => {
+                const seen = new WeakSet();
+                return (key, value) => {
+                    if (typeof value === "object" && value !== null) {
+                    if (seen.has(value)) { return;}
+                    seen.add(value);}
+                    return value;};};
+
+                function download() {
+                    var element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+                    encodeURIComponent(JSON.stringify(hwSchematic.layouter.graph, getCircularReplacer(), 2)));
+                    element.setAttribute('download', currentFileName.replace(".json", "_mapped.json"));
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                }
                 function viewport() {
                     var e = window, a = 'inner';
                     if (!('innerWidth' in window)) {
@@ -229,10 +267,110 @@ class HTMLComposer:
         \n""")
         fp.write("hwSchematic.bindData(\n")
         fp.write(self._write_json())
-        fp.write(")")
+        fp.write(");")
+        fp.write(f"var currentFileName = '{self.top_instance}.json';")
         fp.write("""
         </script>
         </body>
         </html>
         """)
         fp.close()
+
+    def write_block(self):
+        """
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Elkjs-SVG</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/elkjs@0.7.0/lib/elk.bundled.js"></script>
+    <script type="text/javascript" src="https://bundle.run/elkjs-svg@0.2.1"></script>
+    <style>
+        svg {
+            display: block;
+            margin: auto;
+        }
+
+        body {
+            margin: 0;
+            background-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="svg-wrapper"></div>
+    <script>
+
+        function viewport() {
+            var e = window,
+                a = 'inner';
+            if (!('innerWidth' in window)) {
+                a = 'client';
+                e = document.documentElement || document.body;
+            }
+            return {
+                width: e[a + 'Width'],
+                height: e[a + 'Height']
+            }
+        }
+
+        var width = viewport().width;
+        var height = viewport().height;
+
+        const graph = {
+            "id": "root",
+            "layoutOptions": {
+                "elk.algorithm": "rectpacking"
+            },
+            "children": [
+                { "id": "n1", "width": 30, "height": 30 },
+                { "id": "n2", "width": 30, "height": 30 },
+                { "id": "n3", "width": 30, "height": 30 }
+            ],
+            "edges": [
+                { "id": "e1", "sources": ["n1"], "targets": ["n2"] },
+                { "id": "e2", "sources": ["n1"], "targets": ["n3"] }
+            ]
+        };
+        const elk = new ELK()
+        var d3SVG;
+        elk.layout(graph)
+            .then(data => {
+                var renderer = new elkjsSvg.Renderer();
+                var svg = renderer.toSvg(data);
+                // var newsvg = document.getElementsByTagName("body");
+                var newsvg = document.getElementById("svg-wrapper");
+                newsvg.innerHTML += svg;
+
+                d3SVG = d3.select('svg')
+                    .attr("width", 1051)
+                    .attr("height", 969)
+                    .attr("preserveAspectRatio", "xMidYMin")
+                    .call(zoom);
+
+            });
+
+        var orig = document.body.onresize;
+        document.body.onresize = function (ev) {
+            if (orig)
+                orig(ev);
+
+            var w = viewport();
+            svg.attr("width", w.width);
+            svg.attr("height", w.height);
+        }
+
+        var zoom = d3.zoom();
+        zoom.on("zoom", function applyTransform(ev) {
+            console.log(ev.transform);
+            console.log(d3SVG.select("g"));
+            d3SVG.select("g").attr("transform", ev.transform);
+        });
+
+    </script>
+</body>
+</html>
+        """

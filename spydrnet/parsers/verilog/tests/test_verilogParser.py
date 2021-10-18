@@ -27,7 +27,7 @@ class TestVerilogParser(unittest.TestCase):
             token = self.tokens[self.index]
             self.index += 1
             return token
-        
+
         def peek(self):
             token = self.tokens[self.index]
             return token
@@ -57,10 +57,10 @@ class TestVerilogParser(unittest.TestCase):
         for k, v in expected.items():
             assert k in parameters, "expected to see " + k + " in the definition parameters"
             assert parameters[k] == v, "expected value of k to be " + v + " but got instead " + parameters[k]
-        
+
         for k, v in parameters.items():
             assert k in expected, "unexpected value " + k + " in the definition parameters"
-        
+
     def test_module_header_port_name_only(self):
         #expected = [(direction, left, right, name)]
         expected = ["PORT0", "PORT1", "PORT2", "PORT3", "PORT4"]
@@ -160,7 +160,7 @@ class TestVerilogParser(unittest.TestCase):
             definition_width = len(parser.current_definition.ports[i].pins)
             assert expected_lower == definition_lower, \
                 "lower indicies do not match up expected " + str(expected_lower) + " but got " + str(definition_lower)
-            
+
             assert expected_width == definition_width, \
                 "widths do not match up expected " + str(expected_width) + " but got " + str(definition_width)
 
@@ -204,7 +204,7 @@ class TestVerilogParser(unittest.TestCase):
             definition_width = len(parser.current_definition.ports[i].pins)
             assert expected_lower == definition_lower, \
                 "lower indicies do not match up expected " + str(expected_lower) + " but got " + str(definition_lower)
-            
+
             assert expected_width == definition_width, \
                 "widths do not match up expected " + str(expected_width) + " but got " + str(definition_width)
 
@@ -257,7 +257,7 @@ class TestVerilogParser(unittest.TestCase):
         parser.current_library = sdn.Library(name = "TestLibrary")
         parser.netlist = sdn.Netlist()
         parser.netlist.add_library(parser.current_library)
-        
+
         parser.parse_module()
 
         assert len(parser.current_definition.ports) == 1
@@ -276,7 +276,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_port_cable_resize_post_creation(self):
         '''we need a test that creates a port and then resizes it on definition
-        
+
         module something(port);
         input [3:0] port;
         endmodule'''
@@ -287,7 +287,7 @@ class TestVerilogParser(unittest.TestCase):
         parser.current_library = sdn.Library(name = "TestLibrary")
         parser.netlist = sdn.Netlist()
         parser.netlist.add_library(parser.current_library)
-        
+
         parser.parse_module()
 
         assert len(parser.current_definition.ports) == 1
@@ -315,7 +315,7 @@ class TestVerilogParser(unittest.TestCase):
         parser.current_library = sdn.Library(name = "TestLibrary")
         parser.netlist = sdn.Netlist()
         parser.netlist.add_library(parser.current_library)
-        
+
         parser.parse_module()
 
         assert len(parser.current_definition.ports) == 1
@@ -380,7 +380,7 @@ class TestVerilogParser(unittest.TestCase):
         left, right = parser.parse_brackets()
         assert(left == left_expected)
         assert(right == right_expected)
-    
+
     @unittest.expectedFailure
     def test_array_slicing_bad_ending(self):
         left_expected = 2334
@@ -404,7 +404,7 @@ class TestVerilogParser(unittest.TestCase):
         left, right = parser.parse_brackets()
         assert(left == left_expected)
         assert(right == right_expected)
-        
+
 
     ###################################################
     ##Cable Creation and modification
@@ -412,7 +412,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def init_cable_creation(self):
         parser = VerilogParser()
-        
+
         my_def = sdn.Definition()
         my_def.name = "testing_definition"
         c1 = my_def.create_cable()
@@ -427,7 +427,7 @@ class TestVerilogParser(unittest.TestCase):
         c3.is_downto = False
         c3.lower_index = 16
         c3.create_wires(4)
-        
+
         parser.current_definition = my_def
 
         return parser, c1, c2, c3
@@ -463,7 +463,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_add_to_front_of_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
-        
+
         tests =\
             [("preexisting1", 15, 0, None, c1, 0, 16),\
             ("preexisting2", 0, -16, None, c2, -16, 32),\
@@ -473,7 +473,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_add_to_back_of_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
-        
+
         tests =\
             [("preexisting1", 31, 16, None, c1, 8, 24),\
             ("preexisting2", 31, 8, None, c2, 0, 32),\
@@ -483,7 +483,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_create_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
-        
+
         tests =\
             [("new_cable1", 31, 16, None, None, 16, 16, True),\
             ("new_cable2", 0, -7, None, None, -7, 8, True),\
@@ -493,7 +493,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_create_cable_downto(self):
         parser, c1, c2, c3 = self.init_cable_creation()
-        
+
         tests =\
             [("new_cable1", 7, 0, None, None, 0, 8, True),\
             ("new_cable2", 0, 7, None, None, 0, 8, False)]
@@ -504,7 +504,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_dont_change_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
-        
+
         tests =\
             [("preexisting1", 15, 8, None, c1, 8, 8),\
             ("preexisting2", 15, 0, None, c2, 0, 16),\
@@ -530,7 +530,7 @@ class TestVerilogParser(unittest.TestCase):
     def test_change_cable_downto(self):
         #i don't think the cable downto-ness should ever change. this is tested in the add to cable helper
         parser, c1, c2, c3 = self.init_cable_creation()
-        
+
         tests =\
             [("preexisting1", 15, 8, None, c1, 8, 8),\
             ("preexisting1", 8, 15, None, c1, 8, 8)]
@@ -556,7 +556,7 @@ class TestVerilogParser(unittest.TestCase):
 
         print(c1_wires)
         print()
-        
+
         prepend_count = 8
 
         parser.prepend_wires(c1, prepend_count)
@@ -604,7 +604,7 @@ class TestVerilogParser(unittest.TestCase):
         c3_wires = set()
         for wire in c3.wires:
             c3_wires.add(wire)
-        
+
         postpend_count = 8
 
         parser.postpend_wires(c1, postpend_count)
@@ -633,7 +633,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_populate_new_cable(self):
         parser = VerilogParser()
-        
+
         test_data = [("test_name", 2, 0, "wire"), ("\\escaped#$@_[213] ", 15,8,"wire"), ("some_name", 7,4,"reg")]
 
         for name, left, right, cable_type in test_data:
@@ -649,7 +649,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_parse_cable_concatenation(self):
         parser = VerilogParser()
-        
+
         wire_names = ["wire1", "wire2", "wire3", "wire4"]
         token_list = ["{"]
         first = True
@@ -673,7 +673,7 @@ class TestVerilogParser(unittest.TestCase):
         for i in range(len(wire_names)):
             assert parser.current_definition.cables[i].name == wire_names[i], " the wires created do not have matching names"
             assert wires[i].cable.name == wire_names[i], "the wires returned are not in order."
-            
+
     ############################################################################
     ##Instance instantiation
     ############################################################################
@@ -687,9 +687,9 @@ class TestVerilogParser(unittest.TestCase):
         parser.current_definition = definition
         parser.current_instance = definition.create_child()
         parser.current_instance.reference = parser.blackbox_holder.get_blackbox("definition_name")
-        
+
         port_name = "port_name"
-        
+
         tokens = [".", port_name, "(", ")"]
 
         tokenizer = self.TestTokenizer(tokens)
@@ -758,7 +758,7 @@ class TestVerilogParser(unittest.TestCase):
             assert parser.current_instance.reference.ports[i].name == port_names[i]
             for p in parser.current_definition.cables[i].wires[0].pins:
                 assert p in parser.current_instance.pins
-            
+
 
     def test_parse_parameter_map_single(self):
         parser = VerilogParser()
@@ -770,7 +770,7 @@ class TestVerilogParser(unittest.TestCase):
 
         assert k == "INIT"
         assert v == "1hABCD1230"
-    
+
 
     def test_parse_parameter_map_single_multi_token_value(self):
         parser = VerilogParser()
@@ -821,7 +821,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def init_port_creation(self):
         parser = VerilogParser()
-        
+
         my_def = sdn.Definition()
         my_def.name = "testing_definition"
         c1 = my_def.create_port()
@@ -836,7 +836,7 @@ class TestVerilogParser(unittest.TestCase):
         c3.is_downto = False
         c3.lower_index = 16
         c3.create_pins(4)
-        
+
         parser.current_definition = my_def
 
         return parser, c1, c2, c3
@@ -874,7 +874,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_add_to_front_of_port(self):
         parser, c1, c2, c3 = self.init_port_creation()
-        
+
         tests =\
             [("preexisting1", 15, 0, sdn.Port.Direction.IN, c1, 0, 16),\
             ("preexisting2", 0, -16, sdn.Port.Direction.OUT, c2, -16, 32),\
@@ -884,7 +884,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_add_to_back_of_port(self):
         parser, c1, c2, c3 = self.init_port_creation()
-        
+
         tests =\
             [("preexisting1", 31, 16, sdn.Port.Direction.UNDEFINED, c1, 8, 24),\
             ("preexisting2", 31, 8, sdn.Port.Direction.IN, c2, 0, 32),\
@@ -894,7 +894,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_create_port(self):
         parser, c1, c2, c3 = self.init_port_creation()
-        
+
         tests =\
             [("new_port1", 31, 16, sdn.Port.Direction.IN, None, 16, 16, True),\
             ("new_port2", 0, -7, sdn.Port.Direction.INOUT, None, -7, 8, True),\
@@ -904,7 +904,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_create_port_downto(self):
         parser, c1, c2, c3 = self.init_port_creation()
-        
+
         tests =\
             [("new_port1", 7, 0, sdn.Port.Direction.OUT, None, 0, 8, True),\
             ("new_port2", 0, 7, sdn.Port.Direction.INOUT, None, 0, 8, False)]
@@ -915,7 +915,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_dont_change_port(self):
         parser, c1, c2, c3 = self.init_port_creation()
-        
+
         tests =\
             [("preexisting1", 15, 8, sdn.Port.Direction.OUT, c1, 8, 8),\
             ("preexisting2", 15, 0, sdn.Port.Direction.IN, c2, 0, 16),\
@@ -941,7 +941,7 @@ class TestVerilogParser(unittest.TestCase):
     def test_change_port_downto(self):
         #i don't think the port downto-ness should ever change. this is tested in the add to port helper
         parser, c1, c2, c3 = self.init_port_creation()
-        
+
         tests =\
             [("preexisting1", 15, 8, sdn.Port.Direction.UNDEFINED, c1, 8, 8),\
             ("preexisting1", 8, 15, sdn.Port.Direction.UNDEFINED, c1, 8, 8)]
@@ -967,7 +967,7 @@ class TestVerilogParser(unittest.TestCase):
 
         print(c1_pins)
         print()
-        
+
         prepend_count = 8
 
         parser.prepend_pins(c1, prepend_count)
@@ -1015,7 +1015,7 @@ class TestVerilogParser(unittest.TestCase):
         c3_pins = set()
         for pin in c3.pins:
             c3_pins.add(pin)
-        
+
         postpend_count = 8
 
         parser.postpend_pins(c1, postpend_count)
@@ -1044,7 +1044,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_populate_new_port(self):
         parser = VerilogParser()
-        
+
         test_data = [("test_name", 2, 0, sdn.Port.Direction.IN), ("\\escaped#$@_[213] ", 15,8, sdn.Port.Direction.OUT), ("some_name", 7,4,sdn.Port.Direction.INOUT)]
 
         for name, left, right, direction in test_data:
@@ -1063,7 +1063,7 @@ class TestVerilogParser(unittest.TestCase):
         tokenizer = self.TestTokenizer(token_list)
         parser.tokenizer = tokenizer
         d = sdn.Definition()
-        
+
         parser.current_definition = d
 
         for n in names:
@@ -1084,7 +1084,7 @@ class TestVerilogParser(unittest.TestCase):
         tokenizer = self.TestTokenizer(token_list)
         parser.tokenizer = tokenizer
         d = sdn.Definition()
-        
+
         parser.current_definition = d
 
         for n in names:
@@ -1186,16 +1186,28 @@ class TestVerilogParser(unittest.TestCase):
         assert i_left == None
         assert i_right == None
 
+    # ############################################
+    # ## Parsing comments
+    # ############################################
+    # def test_remove_comments(self):
+    #     tokens = ['// Test comment']
+    #     tokenizer = self.TestTokenizer(tokens)
+    #     parser = VerilogParser()
+    #     parser.tokenizer = tokenizer
+    #     print("tokenizer.next_token")
+    #     print(tokenizer)
+    #     stars = parser.peek_token()
+
     ############################################
-    ##Parse star parameters
+    ## Parse star parameters
     ############################################
-    
+
     def test_parse_star_with_value(self):
         tokens = ['(', '*', 'key', '=', 'value', '*', ')']
         tokenizer = self.TestTokenizer(tokens)
         parser = VerilogParser()
         parser.tokenizer = tokenizer
-        
+
         stars = parser.parse_star_property()
         for k,v in stars.items():
             assert k == "key"
@@ -1206,7 +1218,7 @@ class TestVerilogParser(unittest.TestCase):
         tokenizer = self.TestTokenizer(tokens)
         parser = VerilogParser()
         parser.tokenizer = tokenizer
-        
+
         stars = parser.parse_star_property()
         for k,v in stars.items():
             assert k == "key"
@@ -1221,15 +1233,15 @@ class TestVerilogParser(unittest.TestCase):
         and I presume that:
         (* KEEP, DONT_TOUCH *)
         would all be valid
-        ''' 
+        '''
         tokens = ["(", "*", "KEEP", ",", "DONT_TOUCH", ",", "BEL", "=", '"C6LUT"', "*", ")",\
             "(", "*", "BEL", "=", '"H6LUT"', ",", "RLOC", "=", '"X0Y0"', "*", ")",\
             "(", "*", "KEEP", ",", "DONT_TOUCH", "*", ")"]
-        
+
         tokenizer = self.TestTokenizer(tokens)
         parser = VerilogParser()
         parser.tokenizer = tokenizer
-        
+
         stars0 = parser.parse_star_property()
         stars1 = parser.parse_star_property()
         stars2 = parser.parse_star_property()
@@ -1250,7 +1262,7 @@ class TestVerilogParser(unittest.TestCase):
         assert stars2["KEEP"] == None
         assert "DONT_TOUCH" in stars2
         assert stars2["DONT_TOUCH"] == None
-        
+
 
 
     ############################################
@@ -1272,7 +1284,7 @@ class TestVerilogParser(unittest.TestCase):
 
         groups = [[wire1, wire2, wire3], [wire1, wire2], [wire1], [wire3]]
         expected_results = [[port1, port2], [port1, port2], [port1], []]
-        
+
         parser = VerilogParser()
 
         for i in range(len(groups)):
@@ -1282,7 +1294,7 @@ class TestVerilogParser(unittest.TestCase):
                 assert r in expected_results[i]
             for r in expected_results[i]:
                 assert r in actual_results
-        
+
 
     def test_get_wires_from_cable_helper(self):
 

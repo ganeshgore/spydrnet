@@ -50,6 +50,7 @@ class TestCable(unittest.TestCase):
         self.assertEqual(wire_included.cable, self.cable)
 
     def test_check_concat(self):
+        # TODO: test connections to inner_pins as well
         port0 = sdn.Port(name="p0", direction=sdn.Port.Direction.OUT)
         port1 = sdn.Port(name="p1", direction=sdn.Port.Direction.IN)
         port2 = sdn.Port(name="p2", direction=sdn.Port.Direction.IN)
@@ -98,6 +99,22 @@ class TestCable(unittest.TestCase):
         self.assertTrue(port.pins[1].wire is w[2])
         self.assertTrue(port.pins[2].wire is w[1])
         self.assertTrue(port.pins[3].wire is w[0])
+
+    def test_connect_instance_port(self):
+        top = sdn.Definition(name="top")
+        module = sdn.Definition(name="module1")
+        port = module.create_port(name="p0",
+                            direction=sdn.Port.Direction.IN,
+                            is_downto=False)
+        port.create_pins(4)
+        inst1 = top.create_child(name="inst1", reference=module)
+
+        w = self.cable.create_wires(4)
+        self.assertIsNone(self.cable.connect_instance_port(inst1, port))
+        self.assertTrue(inst1.pins[port.pins[0]].wire is w[3])
+        self.assertTrue(inst1.pins[port.pins[1]].wire is w[2])
+        self.assertTrue(inst1.pins[port.pins[2]].wire is w[1])
+        self.assertTrue(inst1.pins[port.pins[3]].wire is w[0])
 
     def test_merge_cables(self):
         cable1 = sdn.Cable()

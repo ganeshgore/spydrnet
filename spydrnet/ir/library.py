@@ -1,5 +1,6 @@
 from spydrnet.ir.first_class_element import FirstClassElement
 from spydrnet.ir.definition import Definition
+from spydrnet.ir.instance import Instance
 from spydrnet.ir.views.listview import ListView
 from spydrnet.global_state import global_callback
 from spydrnet.global_state.global_callback import _call_create_library
@@ -91,9 +92,9 @@ class Library(FirstClassElement):
         Parameters
         ----------
 
-        definition - Definition 
+        definition - Definition
             The defintion to add to the library
-        position - int, (default None) 
+        position - int, (default None)
             the index in the library list at which to add the definition
         """
         assert definition.library is not self, "Definition " + str(definition) + " already included in library " + str(self)
@@ -104,6 +105,27 @@ class Library(FirstClassElement):
         else:
             self._definitions.append(definition)
         definition._library = self
+
+    def create_top_wrapper(self, name=None, inst_name=None):
+        """ Creates 1-to-1 wrapper on top of current top_instance
+        """
+        top_instance = self._netlist.top_instance
+        name = name or f"{top_instance.name}_wrapper"
+        inst_name = inst_name or f"{top_instance.reference.name}_1"
+        newdef = self.create_definition(name)
+        childInstance = newdef.create_child( inst_name,
+            reference=top_instance.reference)
+
+        for eachPort in top_instance.reference.ports:
+
+            new_port = eachPort.clone()
+            newdef.add_port(new_port)
+            c = newdef.create_cable(eachPort.name, wires=eachPort.size)
+            c.connect_instance_port(childInstance , next(top_instance.get_ports(eachPort.name)))
+            c.connect_port(new_port)
+        self._netlist.top_instance = Instance(name)
+        self._netlist.top_instance.reference = newdef
+        return newdef
 
     def remove_definition(self, definition):
         """Remove the given definition from the library.
@@ -155,7 +177,7 @@ class Library(FirstClassElement):
             definition._clone_rip_and_replace(memo)
 
     def _clone_rip(self, memo):
-        """Remove from its current environmnet. 
+        """Remove from its current environmnet.
 
         This will remove all pin pointers and create a floating stand alone instance."""
         # references lists of definitions need to be vacated except those that were cloned.

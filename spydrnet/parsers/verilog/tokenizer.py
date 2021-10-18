@@ -103,7 +103,7 @@ class VerilogTokenizer:
         if result != None:
             yield result
 
-    
+
 
     def close(self):
         if self.input_stream:

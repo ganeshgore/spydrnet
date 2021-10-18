@@ -9,6 +9,12 @@ from spydrnet.global_state import global_callback
 from itertools import combinations
 from spydrnet.global_state.global_callback import _call_create_definition
 from copy import deepcopy, copy, error
+import logging
+from typing import List, Iterator
+from itertools import chain
+
+
+logger = logging.getLogger('spydrnet_logs')
 
 
 class Definition(FirstClassElement):
@@ -143,7 +149,7 @@ class Definition(FirstClassElement):
             return False
         return True
 
-    def create_port(self, name=None, properties=None, is_downto=None, is_scalar=None, lower_index=None, direction=None):
+    def create_port(self, name=None, properties=None, is_downto=None, is_scalar=None, lower_index=None, direction=None, pins=None):
         """Create a port, add it to the definition, and return that port.
 
         parameters
@@ -155,11 +161,14 @@ class Definition(FirstClassElement):
         is_scalar - (bool) set the scalar status. Return True if the item is a scalar False otherwise.
         lower_index - (int) get the value of the lower index of the array.
         direction - (Enum) Define the possible directions for a given port. (UNDEFINED, INOUT, IN, OUT)
+        pins - (int) Create number of pins in the newly created port
 
         """
         port = Port(name, properties, is_downto,
                     is_scalar, lower_index, direction)
         self.add_port(port)
+        if pins:
+            port.create_pins(pins)
         return port
 
     def add_port(self, port, position=None):
@@ -350,7 +359,7 @@ class Definition(FirstClassElement):
         global_callback._call_definition_remove_child(self, child)
         child._parent = None
 
-    def create_cable(self, name=None, properties=None, is_downto=None, is_scalar=None, lower_index=None):
+    def create_cable(self, name=None, properties=None, is_downto=None, is_scalar=None, lower_index=None, wires=None):
         """Create a cable, add it to the definition, and return the cable.
 
         parameters
@@ -364,6 +373,8 @@ class Definition(FirstClassElement):
         """
         cable = Cable(name, properties, is_downto, is_scalar, lower_index)
         self.add_cable(cable)
+        if wires:
+            cable.create_wires(wires)
         return cable
 
     def add_cable(self, cable, position=None):
@@ -432,6 +443,117 @@ class Definition(FirstClassElement):
         """
         global_callback._call_definition_remove_cable(self, cable)
         cable._definition = None
+
+    def create_feedthroughs_ports(self, cable, suffix="ft"):
+        """ Given the cable object it creates a
+        *_ft_in and *_ft_out feedthrough port in current definition.
+        """
+        inport_name = f"{cable.name}_{suffix}_in"
+        outport_name = f"{cable.name}_{suffix}_out"
+        inport, outport = (
+            self.create_port(inport_name,
+                             pins=cable.size,
+                             is_scalar=cable.is_scalar,
+                             lower_index=cable.lower_index,
+                             direction=Port.Direction.IN),
+            self.create_port(outport_name,
+                             pins=cable.size,
+                             is_scalar=cable.is_scalar,
+                             lower_index=cable.lower_index,
+                             direction=Port.Direction.OUT))
+
+        int_cable = self.create_cable(inport_name, wires=cable.size)
+        out_cable = self.create_cable(outport_name, wires=cable.size)
+
+        assign_library = self._get_assignment_library()
+        definition = self._get_assignment_definition(assign_library, cable.size)
+        instance = self.create_child(
+                        f"{inport_name}_{outport_name}_ft",
+                        reference=definition)
+
+        int_cable.connect_port(inport)
+        int_cable.connect_instance_port(instance, next(definition.get_ports("i")) )
+        out_cable.connect_port(outport)
+        out_cable.connect_instance_port(instance, next(definition.get_ports("o")) )
+        return (inport, outport)
+
+    def create_feedthrough(self, instances_list, cable) -> List[Cable]:
+        """
+        Creates a feedthrough for a single cable passing through
+        list of instances
+        """
+        if isinstance(instances_list, Instance):
+            instances_list = (instances_list,)
+        assert len(instances_list) > 0, \
+            "Missing instances to create feedthroughs"
+        assert isinstance(cable, Cable), \
+            "Cable object required"
+        assert cable.definition == self, \
+            "Cable {cable.name} does not belog to thos definition"
+
+        for indx, instance in enumerate(instances_list):
+            inport, outport = instance.reference.create_feedthroughs_ports(
+                cable)
+            cable_name = cable.name
+            cable.name = f"{cable.name}_ft_in_{indx}"
+            new_cable = self.create_cable(cable_name)
+            new_cable.create_wires(cable.size)
+            new_cable.connect_instance_port(instance, inport)
+            for each_w in cable.wires:
+                for pin in each_w.pins:
+                    if pin.port.direction == Port.Direction.OUT:
+                        each_w.disconnect_pin(pin)
+                        new_cable.wires[pin.inner_pin.index()].connect_pin(pin)
+            cable.connect_instance_port(instance, outport)
+        return new_cable
+
+    def create_feedthrough_multiple(self, instances_list) -> List[Cable]:
+        """
+        This creates feedthough from list of instances on multiple locations
+        Expects the list of tuples in following format
+        instances_list = [(Cable, (inst1, inst1, . . . .instn), ...
+                        (Cable, (inst1, inst1, . . . .instn))]
+        """
+        assert len(instances_list) > 0, \
+            "Missing instances list to create feedthroughs"
+
+        for cable, inst_tuple in instances_list:
+            assert isinstance(cable, Cable), \
+                "Cable object required"
+            assert cable.definition == self, \
+                "Cable {cable.name} does not belog to thos definition"
+            for indx, instance in enumerate(inst_tuple):
+                assert isinstance(instance, Instance), \
+                    "Found {type(instance) in the instances list}"
+                assert instance.reference == instances_list[0][1][indx].reference, \
+                    f"Instances order does not match"
+
+        new_cables = []
+        port_map = []
+        for indx2, instance in enumerate(instances_list[0][1]):
+            inport, outport = instance.reference.create_feedthroughs_ports(
+                instances_list[0][0], suffix=f"ft_{indx2}")
+            port_map.append((inport, outport))
+
+        for indx2, instances_list in enumerate(instances_list):
+            for indx, inst in enumerate(instances_list[1][::-1]):
+                cable = instances_list[0]
+                logger.info(f"Iterating {cable.name} for inst {inst.name}")
+
+                new_cable = self.create_cable(f"{cable.name}_ft_{indx}")
+                new_cable.create_wires(cable.size)
+
+                logger.info(f"Created new cable {cable.name} {new_cable.name}")
+                new_cables.append(new_cable)
+                new_cable.connect_instance_port(inst, port_map[indx][1])
+                for each_w in cable.wires:
+                    for pin in each_w.pins:
+                        if pin.port.direction == Port.Direction.IN:
+                            each_w.disconnect_pin(pin)
+                            new_cable.wires[pin.inner_pin.index()].connect_pin(
+                                pin)
+                cable.connect_instance_port(inst, port_map[indx][0])
+        return new_cables, port_map
 
     def merge_multiple_instance(self, instances_list_tuple, new_definition_name=None, pin_map=None):
         """
@@ -605,18 +727,119 @@ class Definition(FirstClassElement):
                 for eachPort in ports[1:]:
                     self.remove_cable(eachPort.pins[0].wire.cable)
                     self.remove_port(eachPort)
-                    print("-----------------")
-                    print(eachPort.pins)
+                    logger.debug(
+                        f"Merged Ports {ports[0].name}<-{eachPort.name}")
                 if ports in absorbPins:
                     self.remove_port(ports[0])
+                    logger.debug(f"Absorbed port {ports[0].name}")
 
         return duplicatePins if merge else absorbPins if absorb else None
+
+    def OptWires(self, Floating=True):
+        for c in self.get_cables():
+            for w in c.wires:
+                if (len(w.pins) < 2):
+                    print(f"{w} Wire an be trimmed ")
+
+    def OptInstances(self, checkInputs=True, checkOutputs=True):
+        for c in self.children:
+            for p in c.pins.values():
+                # if (p.port.direction == Port.Direction.IN) and not checkInputs:
+                #     continue
+                # if (p.port.direction == Port.Direction.OUT) and not checkOutputs:
+                #     continue
+                if p.wire:
+                    break
+            else:
+                print(f"{p._instance} Instance an be trimmed ")
+
+    def _get_assignment_library(self):
+        assert self.library, "Library is not defined for the definition"
+        assert self.library.netlist, "netlist is not defined for the library definition"
+        netlist = self.library.netlist
+        assign_library = next(
+            chain(netlist.get_libraries("SDN_VERILOG_ASSIGNMENT"), None))
+        if not assign_library:
+            logger.info("Missing SDN_VERILOG_ASSIGNMENT libarary" + \
+                        "Creating new")
+            assign_library = netlist.create_library(
+                name="SDN_VERILOG_ASSIGNMENT")
+        return assign_library
+
+    def _get_assignment_definition(self, assign_library, size):
+        assign_def_name = f"SDN_VERILOG_ASSIGNMENT_{size}"
+        definition = next(assign_library.get_definitions(assign_def_name), None)
+        if not definition:
+            definition = assign_library.create_definition(name=assign_def_name)
+            p_in = definition.create_port("i", pins=size)
+            p_out = definition.create_port("o", pins=size)
+            p_in.direction = p_in.Direction.IN
+            p_out.direction = p_out.Direction.OUT
+            cable = definition.create_cable("through", wires=size)
+            cable.connect_port(p_in)
+            cable.connect_port(p_out)
+        return definition
+
+    def duplicate_port(self, port, portname=None) -> Port:
+        assert isinstance(port, Port), \
+            f"Required Port but found {type(port)}"
+
+        assert self.library, "Library is not defined for the definition"
+        assert self.library.netlist, "netlist is not defined for the library definition"
+
+        new_port = port.clone()
+        new_port.name = portname if portname else f"{port.name}_dup"
+        port_cable = port.pins[0].wire.cable
+        new_cable = port_cable.clone()
+        new_cable.name = new_port.name
+        new_cable.connect_port(new_port)
+
+        assign_library = self._get_assignment_library()
+        definition = self._get_assignment_definition(assign_library, new_cable.size)
+
+        instance = self.create_child(f"SDN_ASSIGNMENT_{port.name}_{new_port.name}",
+                                     reference=definition)
+        if port.is_output:
+            port_cable.connect_instance_port(
+                instance, next(definition.get_ports("i")))
+            new_cable.connect_instance_port(
+                instance, next(definition.get_ports("o")))
+        else:
+            new_cable.connect_instance_port(
+                instance, next(definition.get_ports("i")))
+            port_cable.connect_instance_port(
+                instance, next(definition.get_ports("o")))
+        return new_port
+
+    def combine_cables(self, newCableName, cables, quiet=False):
+        """ This can combine multiple cables together to create a bus cable
+        """
+        if len(cables) == 0:
+            if quiet:
+                return None
+            else:
+                assert False, f"No cables provided"
+
+        for c in cables[1:]:
+            assert isinstance(c, Cable), \
+                f"combine_cables can combine only cable found {type(c)}"
+            assert self == c.definition, \
+                f"all ports to combine should belong to same definition"
+            assert cables.count(c) == 1, \
+                f"Cable defined multiple times {c.name}"
+
+        newCable = self.create_cable(newCableName, is_scalar=False)
+        for c in cables[::-1]:
+            for wire in c.wires[::-1]:
+                c.remove_wire(wire)
+                newCable.add_wire(wire)
+            self.remove_cable(c)
+        return newCable
 
     def combine_ports(self, newPortName, ports):
         """ This can combine multiple input or output ports togther
             to create a bus structure.
         """
-
         direction = ports[0].direction
         for p in ports[1:]:
             assert isinstance(p, Port), \
@@ -638,12 +861,15 @@ class Definition(FirstClassElement):
                 if instance.pins[pp].is_connected:
                     instance.pins[pp].wire.connect_pin(instance.pins[newPin])
             if ppWire:
-            # Switch Internal Wire
+                # Switch Internal Wire
                 ppWire.connect_pin(newPin)
                 self.remove_cable(ppWire.cable)
                 ppWire.cable.remove_wire(ppWire)
                 newCable.add_wire(ppWire)
+            logger.debug(f"Removing port {p.name}")
             self.remove_port(p)
+        logger.debug(f"Combined with {newPort.name} " +
+                     f"created cable {newCable.name}")
         return newPort, newCable
 
     def sanity_check_cables(self):

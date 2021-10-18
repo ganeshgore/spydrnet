@@ -115,8 +115,8 @@ netlist = sdn.parse(os.path.join(dir_path, "hierDesign.v"))
 
 work = next(netlist.get_libraries("work"))
 topModule = next(work.get_definitions("top"))
-MOD1 = next(work.get_definitions("MOD1"))
-MOD2 = next(work.get_definitions("MOD2"))
+MOD1 = next(work.get_definitions("mod1"))
+MOD2 = next(work.get_definitions("mod2"))
 
 
 MOD1_1 = next(topModule.get_instances("mod1_1"))
@@ -125,16 +125,18 @@ MOD1_2 = next(topModule.get_instances("mod1_2"))
 MOD2_2 = next(topModule.get_instances("mod2_2"))
 
 
-newMod, RenameMap = MergeModules(topModule, [MOD1_1, MOD2_1])
-RestructureInstance(topModule, [MOD1_2, MOD2_2],
-                    newInstanceName=f"{newMod.name}_2",
-                    useDefinition=newMod,
-                    Pinmap=RenameMap)
+topModule.merge_instance([MOD1_2, MOD2_2])
+# newMod, RenameMap = MergeModules(topModule, [MOD1_1, MOD2_1])
+# RestructureInstance(topModule, [MOD1_2, MOD2_2],
+#                     newInstanceName=f"{newMod.name}_2",
+#                     useDefinition=newMod,
+#                     Pinmap=RenameMap)
 
 
 sdn.compose(netlist, os.path.join(dir_path, "_result.v"))
 MOD3 = next(topModule.get_instances("MOD3_1"))
 # print([n.name for n in MOD3._cables])
+netlist.top_instance = MOD3
 
 print(MOD3.reference.cables)
 print(MOD3.reference._children)
@@ -143,8 +145,8 @@ print(MOD3.is_leaf())
 
 for eachDef in work.get_definitions():
     eachDef.name += "_eq"
-sdn.compose(netlist, os.path.join(dir_path, "_result_equiv.v"))
 
+sdn.compose(netlist, os.path.join(dir_path, "_result_equiv.v"))
 # print([n.name for n in MOD1._cables])
 # Finished the merging part
 # Work on internal wires

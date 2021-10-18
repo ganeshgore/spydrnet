@@ -1,0 +1,468 @@
+
+        <!DOCTYPE html><html><head>
+        <meta charset="utf-8">
+        <title>SpyDrNet Schematic Render</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/elkjs@0.7.0/lib/elk.bundled.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.css" rel="stylesheet">
+        <style> body { margin: 0; background-color: white; } </style> </head>
+        <body>
+            <button type="button" onclick="download();">Download JSON</button>
+            <svg id="scheme-placeholder"></svg>
+            <script>
+                var currentFileName = "";
+                const getCircularReplacer = () => {
+                const seen = new WeakSet();
+                return (key, value) => {
+                    if (typeof value === "object" && value !== null) {
+                    if (seen.has(value)) { return;}
+                    seen.add(value);}
+                    return value;};};
+
+                function download() {
+                    var element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+                    encodeURIComponent(JSON.stringify(hwSchematic.layouter.graph, getCircularReplacer(), 2)));
+                    element.setAttribute('download', currentFileName.replace(".json", "_mapped.json"));
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                }
+                function viewport() {
+                    var e = window, a = 'inner';
+                    if (!('innerWidth' in window)) {
+                        a = 'client';
+                        e = document.documentElement || document.body;
+                    }
+                    return { width: e[a + 'Width'], height: e[a + 'Height']}
+                }
+
+                var width = viewport().width,
+                    height = viewport().height;
+
+                var svg = d3.select("#scheme-placeholder")
+                    .attr("width", width)
+                    .attr("height", height);
+
+                var orig = document.body.onresize;
+                document.body.onresize = function(ev) {
+                    if (orig)
+                        orig(ev);
+
+                    var w = viewport();
+                    svg.attr("width", w.width);
+                    svg.attr("height", w.height);
+                }
+
+                var hwSchematic = new d3.HwSchematic(svg);
+                hwSchematic._PERF = true;
+                var zoom = d3.zoom();
+                zoom.on("zoom", function applyTransform(ev) {
+                    hwSchematic.root.attr("transform", ev.transform)
+                });
+
+                // disable zoom on doubleclick
+                // because it interferes with component expanding/collapsing
+                svg.call(zoom)
+                .on("dblclick.zoom", null)
+        
+hwSchematic.bindData(
+{
+  "id": "top_frame",
+  "ports": [],
+  "children": [
+    {
+      "id": "top_top",
+      "ports": [
+        {
+          "id": "top_top/n1",
+          "direction": "INPUT",
+          "hwMeta": { "name": "n1"},
+          "properties": { "index": 1, "side": "WEST"}},
+        {
+          "id": "top_top/n2",
+          "direction": "INPUT",
+          "hwMeta": { "name": "n2"},
+          "properties": { "index": 1, "side": "WEST"}},
+        {
+          "id": "top_top/bus1",
+          "direction": "INPUT",
+          "hwMeta": { "name": "bus1"},
+          "properties": { "index": 1, "side": "WEST"}},
+        {
+          "id": "top_top/n3",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": "n3"},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "_children": [
+        {
+          "id": "MOD3_1",
+          "ports": [],
+          "_children": [],
+          "_edges": [],
+          "hwMeta": { "bodyText": "MOD3_1", "cls": "Process"},
+          "properties": {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+          }
+        },
+        {
+          "id": "mod2_2",
+          "ports": [
+            {
+              "id": "mod2_2/A",
+              "direction": "INPUT",
+              "hwMeta": { "name": "A"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod2_2/B",
+              "direction": "INPUT",
+              "hwMeta": { "name": "B"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod2_2/bus1",
+              "direction": "INPUT",
+              "hwMeta": { "name": "bus1"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod2_2/Q",
+              "direction": "OUTPUT",
+              "hwMeta": { "name": "Q"},
+              "properties": { "index": 1, "side": "EAST"}}
+          ],
+          "_children": [],
+          "_edges": [],
+          "hwMeta": { "bodyText": "mod2_2", "cls": "Process"},
+          "properties": {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+          }
+        },
+        {
+          "id": "mod1_2",
+          "ports": [
+            {
+              "id": "mod1_2/A",
+              "direction": "INPUT",
+              "hwMeta": { "name": "A"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod1_2/Q",
+              "direction": "OUTPUT",
+              "hwMeta": { "name": "Q"},
+              "properties": { "index": 1, "side": "EAST"}}
+          ],
+          "_children": [],
+          "_edges": [],
+          "hwMeta": { "bodyText": "mod1_2", "cls": "Process"},
+          "properties": {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+          }
+        },
+        {
+          "id": "mod2_1",
+          "ports": [
+            {
+              "id": "mod2_1/A",
+              "direction": "INPUT",
+              "hwMeta": { "name": "A"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod2_1/B",
+              "direction": "INPUT",
+              "hwMeta": { "name": "B"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod2_1/bus1",
+              "direction": "INPUT",
+              "hwMeta": { "name": "bus1"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod2_1/Q",
+              "direction": "OUTPUT",
+              "hwMeta": { "name": "Q"},
+              "properties": { "index": 1, "side": "EAST"}}
+          ],
+          "_children": [],
+          "_edges": [],
+          "hwMeta": { "bodyText": "mod2_1", "cls": "Process"},
+          "properties": {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+          }
+        },
+        {
+          "id": "mod1_1",
+          "ports": [
+            {
+              "id": "mod1_1/A",
+              "direction": "INPUT",
+              "hwMeta": { "name": "A"},
+              "properties": { "index": 1, "side": "WEST"}},
+            {
+              "id": "mod1_1/Q",
+              "direction": "OUTPUT",
+              "hwMeta": { "name": "Q"},
+              "properties": { "index": 1, "side": "EAST"}}
+          ],
+          "_children": [],
+          "_edges": [],
+          "hwMeta": { "bodyText": "mod1_1", "cls": "Process"},
+          "properties": {
+            "org.eclipse.elk.layered.mergeEdges": 1,
+            "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+          }
+        }
+      ],
+      "_edges": [
+        {
+          "id": 1,
+          "hwMeta": { "name": "n1", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "top_top",
+              "top_top/n1"
+            ]
+          ],
+          "targets": [
+            [
+              "mod1_1",
+              "mod1_1/A"
+            ],
+            [
+              "mod1_2",
+              "mod1_2/A"
+            ]
+          ]},
+        {
+          "id": 2,
+          "hwMeta": { "name": "n2", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "top_top",
+              "top_top/n2"
+            ]
+          ],
+          "targets": [
+            [
+              "mod2_1",
+              "mod2_1/A"
+            ],
+            [
+              "mod2_2",
+              "mod2_2/A"
+            ],
+            [
+              "MOD3_1",
+              "MOD3_1/A"
+            ]
+          ]},
+        {
+          "id": 3,
+          "hwMeta": { "name": "n3", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "top_top",
+              "top_top/n3"
+            ]
+          ],
+          "targets": [
+            [
+              "mod2_1",
+              "mod2_1/Q"
+            ],
+            [
+              "mod2_2",
+              "mod2_2/Q"
+            ]
+          ]},
+        {
+          "id": 4,
+          "hwMeta": { "name": "n4", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "mod1_1",
+              "mod1_1/Q"
+            ]
+          ],
+          "targets": [
+            [
+              "mod2_1",
+              "mod2_1/B"
+            ]
+          ]},
+        {
+          "id": 5,
+          "hwMeta": { "name": "n5", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "mod1_2",
+              "mod1_2/Q"
+            ]
+          ],
+          "targets": [
+            [
+              "mod2_2",
+              "mod2_2/B"
+            ],
+            [
+              "mod2_2",
+              "mod2_2/bus1"
+            ],
+            [
+              "MOD3_1",
+              "MOD3_1/B"
+            ]
+          ]}
+      ],
+      "hwMeta": { "bodyText": "top_top", "cls": "Process"},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "n1_port",
+      "ports": [
+        {
+          "id": "n1",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "n1", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "n2_port",
+      "ports": [
+        {
+          "id": "n2",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "n2", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "bus1_port",
+      "ports": [
+        {
+          "id": "bus1",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "bus1", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "n3_port",
+      "ports": [
+        {
+          "id": "n3",
+          "direction": "INPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "WEST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "n3", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "n1_conn",
+      "hwMeta": { "name": "n1_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/n1"
+        ]
+      ],
+      "targets": [
+        [
+          "n1_port",
+          "n1"
+        ]
+      ]},
+    {
+      "id": "n2_conn",
+      "hwMeta": { "name": "n2_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/n2"
+        ]
+      ],
+      "targets": [
+        [
+          "n2_port",
+          "n2"
+        ]
+      ]},
+    {
+      "id": "bus1_conn",
+      "hwMeta": { "name": "bus1_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/bus1"
+        ]
+      ],
+      "targets": [
+        [
+          "bus1_port",
+          "bus1"
+        ]
+      ]},
+    {
+      "id": "n3_conn",
+      "hwMeta": { "name": "n3_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/n3"
+        ]
+      ],
+      "targets": [
+        [
+          "n3_port",
+          "n3"
+        ]
+      ]}
+  ],
+  "hwMeta": { "maxId": 6},
+  "properties": {
+    "org.eclipse.elk.layered.mergeEdges": 1,
+    "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+  }
+});var currentFileName = 'top_top.json';
+        </script>
+        </body>
+        </html>
+        

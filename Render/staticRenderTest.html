@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>d3-hwschematic example</title>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/elkjs@0.7.0/lib/elk.bundled.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.min.css" rel="stylesheet">
+  <style>
+  	body {
+	   margin: 0;
+       background-color: white;
+    }
+  </style>
+</head>
+<body>
+    <svg id="scheme-placeholder"></svg>
+    <script>
+
+        function viewport() {
+          var e = window,
+            a = 'inner';
+          if (!('innerWidth' in window)) {
+            a = 'client';
+            e = document.documentElement || document.body;
+          }
+          return {
+            width: e[a + 'Width'],
+            height: e[a + 'Height']
+          }
+        }
+
+        var width = viewport().width,
+            height = viewport().height;
+
+        var svg = d3.select("#scheme-placeholder")
+            .attr("width", width)
+            .attr("height", height);
+
+        var orig = document.body.onresize;
+        document.body.onresize = function(ev) {
+            if (orig)
+        	    orig(ev);
+
+            var w = viewport();
+            svg.attr("width", w.width);
+			svg.attr("height", w.height);
+        }
+
+        var hwSchematic = new d3.HwSchematic(svg);
+        var zoom = d3.zoom();
+        zoom.on("zoom", function applyTransform(ev) {
+        	hwSchematic.root.attr("transform", ev.transform)
+        });
+
+        // disable zoom on doubleclick
+        // because it interferes with component expanding/collapsing
+        svg.call(zoom)
+           .on("dblclick.zoom", null)
+
+    </script>
+    <script>
+
+JSONData =
+{
+  "id": 0,
+  "hwMeta": { "bodyText": "Simple Block", "cls": "Process", "maxId": 9999 },
+  "children": [
+    {
+      "hwMeta": { "bodyText": "clb", "cls": "Process", "maxId": 9999 },
+      "_children": [],
+      "_edges": [],
+      "id": 1,
+      "ports": [
+        {
+            "id": 12,
+            "direction": "INPUT",
+            "hwMeta": { "name": "I[0:7]" },
+            "properties": { "index": 2, "side": "WEST" }
+        }, {
+            "id": 13,
+            "direction": "OUTPUT",
+            "hwMeta": { "name": "O[0:7]" },
+            "properties": { "index": 2, "side": "EAST" }
+        }, {
+            "id": 14,
+            "direction": "OUTPUT",
+            "hwMeta": { "name": "CLKO" },
+            "properties": { "index": 3, "side": "EAST" }
+        },
+        {
+            "id": 15,
+            "direction": "INPUT",
+            "hwMeta": { "name": "clk" },
+            "properties": { "index": 1, "side": "WEST" }
+        }
+      ],
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_ORDER"
+      }
+    }
+  ],
+  "edges": [],
+
+  "ports": [],
+  "properties": {
+    "org.eclipse.elk.layered.mergeEdges": 1,
+    "org.eclipse.elk.portConstraints": "FIXED_ORDER"
+  }
+}
+hwSchematic.bindData(JSONData);
+    </script>
+</body>
+</html>

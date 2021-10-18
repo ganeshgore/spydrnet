@@ -1,14 +1,17 @@
 from spydrnet.ir.first_class_element import FirstClassElement
 from spydrnet.ir.outerpin import OuterPin
 from spydrnet.ir.views.outerpinsview import OuterPinsView
+from spydrnet.ir.views.listview import ListView
 from spydrnet.global_state import global_callback
 from spydrnet.global_state.global_callback import _call_create_instance
 from copy import deepcopy, copy, error
 from collections import OrderedDict
+from collections.abc import Iterable
+
 
 
 class Instance(FirstClassElement):
-    """Netlist instance of a netlist definition. 
+    """Netlist instance of a netlist definition.
 
     Instances are literally instances of definitions and they reside inside other definitions.
     Function names have been set to prevent potential confusion that could arise because instances have both a parent definition and definitions which they reference.
@@ -108,14 +111,39 @@ class Instance(FirstClassElement):
         from spydrnet.util.get_ports import get_ports
         return get_ports(self, *args, **kwargs)
 
+    def check_all_scalar_connections(self, port):
+        assert self.reference == port.definition, \
+            "Port does not belong to same definition"
+        for pin in port.pins:
+            if self.pins[pin].wire == None:
+                return False
+            if self._pins[pin].wire.cable.size > 1:
+                return False
+        return True
+
     @property
     def pins(self):
         """Get the pins on this instance.
         Can do instance.pins[<inner_pin>] to get the inner pin's associated outer pins."""
         return OuterPinsView(self._pins)
 
+    def get_port_pins(self, ports):
+        if isinstance(ports, str):
+            ports = self.reference.get_ports(ports)
+        if not isinstance(ports, Iterable):
+            ports = tuple(ports)
+        return (self.pins[p] for port in ports for p in port.pins)
+
+    def get_port_cables(self, ports):
+        cable_list = []
+        for each in self.get_port_pins(ports):
+            if each.wire:
+                if not each.wire.cable in cable_list:
+                    cable_list.append(each.wire.cable)
+        return cable_list
+
     def _clone_rip_and_replace_in_definition(self, memo):
-        """Slide the outerpins references into a new context. 
+        """Slide the outerpins references into a new context.
 
         The instance still references something outside of what has been cloned.
         """
@@ -123,7 +151,7 @@ class Instance(FirstClassElement):
             op._clone_rip_and_replace(memo)
 
     def _clone_rip_and_replace_in_library(self, memo):
-        """Move the instance into a new library/netlist. 
+        """Move the instance into a new library/netlist.
 
         This will replace the reference if affected and replace the inner pins that will be affected as well.
         The instance should not be in the references list of the reference definition
@@ -134,7 +162,7 @@ class Instance(FirstClassElement):
         self._pins = new_pins
 
     def _clone_rip(self):
-        """Remove the instance from its current environmnet. 
+        """Remove the instance from its current environmnet.
 
         This will remove the instance from any wires but it will add it in to the references set on the definition which it instantiates.
         """
@@ -178,7 +206,7 @@ class Instance(FirstClassElement):
     def is_leaf(self):
         """Check to see if the definition that this instance contains represents a leaf cell.
 
-        Leaf cells are cells with no children instances or no children cables. 
+        Leaf cells are cells with no children instances or no children cables.
         Blackbox cells are considered leaf cells as well as direct pass through cells with cables only
         """
         if self._reference is None:

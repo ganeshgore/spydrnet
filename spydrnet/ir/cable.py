@@ -1,6 +1,8 @@
 from spydrnet.ir.bundle import Bundle
 from spydrnet.ir.wire import Wire
 from spydrnet.ir.port import Port
+from spydrnet.ir.instance import Instance
+from spydrnet.ir.innerpin import InnerPin
 from spydrnet.ir.views.listview import ListView
 from spydrnet.global_state import global_callback
 from spydrnet.global_state.global_callback import _call_create_cable
@@ -158,14 +160,50 @@ class Cable(Bundle):
             if not connectedPorts == len(wire.pins):
                 return False
             for pin in wire.pins:
-                if not pin.port.size == self.size:
-                    return False
-                if not pin.index() == wire.index():
-                    return False
+                if isinstance(pin, InnerPin):
+                    if not pin.port.size == self.size:
+                        return False
+                    if not pin.index() == wire.index():
+                        return False
+                else:
+                    if not pin.inner_pin.port.size == self.size:
+                        return False
+                    if not pin.inner_pin.index() == wire.index():
+                        return False
+
         return True
 
+    def connect_instance_port(self, instance, port):
+        assert isinstance(instance, Instance), \
+            "Argument to connect_port should be port"
+        assert isinstance(port, Port), \
+            "Argument to connect_port should be port"
+        assert port.size, "Port has no pins"
+        assert port.size == self.size, "Port and cable size do not match"
+        assert port in instance.reference.ports, \
+                f"Port {port.name} in not part of instance definition {instance.reference.name}"
+        for wire in self.wires:
+            if port.is_downto:
+                wire.connect_pin(instance.pins[port.pins[wire.index()]])
+            else:
+                wire.connect_pin(instance.pins[port.pins[-(wire.index()+1)]])
+
+    def disconnect_instance_port(self, instance, port):
+        assert isinstance(instance, Instance), \
+            "Argument to connect_port should be port"
+        assert isinstance(port, Port), \
+            "Argument to connect_port should be port"
+        assert port.size, "Port has no pins"
+        assert port.size == self.size, "Port and cable size do not match"
+        assert port in instance.reference.ports, \
+                f"Port {port.name} in not part of instance definition {instance.reference.name}"
+        for wire in self.wires:
+            if port.is_downto:
+                wire.disconnect_pin(instance.pins[port.pins[wire.index()]])
+            else:
+                wire.disconnect_pin(instance.pins[port.pins[-(wire.index()+1)]])
+
     def connect_port(self, port):
-        print(type(port))
         assert isinstance(port, Port), \
             "Argument to connect_port should be port"
         assert port.size, "Port has no pins"

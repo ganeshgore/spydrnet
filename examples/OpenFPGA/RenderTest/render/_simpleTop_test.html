@@ -1,0 +1,305 @@
+
+        <!DOCTYPE html><html><head>
+        <meta charset="utf-8">
+        <title>SpyDrNet Schematic Render</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.2/d3.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/elkjs@0.7.0/lib/elk.bundled.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/d3-hwschematic@0.1.6/dist/d3-hwschematic.css" rel="stylesheet">
+        <style> body { margin: 0; background-color: white; } </style> </head>
+        <body>
+            <button type="button" onclick="download();">Download JSON</button>
+            <svg id="scheme-placeholder"></svg>
+            <script>
+                var currentFileName = "";
+                const getCircularReplacer = () => {
+                const seen = new WeakSet();
+                return (key, value) => {
+                    if (typeof value === "object" && value !== null) {
+                    if (seen.has(value)) { return;}
+                    seen.add(value);}
+                    return value;};};
+
+                function download() {
+                    var element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+                    encodeURIComponent(JSON.stringify(hwSchematic.layouter.graph, getCircularReplacer(), 2)));
+                    element.setAttribute('download', currentFileName.replace(".json", "_mapped.json"));
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                }
+                function viewport() {
+                    var e = window, a = 'inner';
+                    if (!('innerWidth' in window)) {
+                        a = 'client';
+                        e = document.documentElement || document.body;
+                    }
+                    return { width: e[a + 'Width'], height: e[a + 'Height']}
+                }
+
+                var width = viewport().width,
+                    height = viewport().height;
+
+                var svg = d3.select("#scheme-placeholder")
+                    .attr("width", width)
+                    .attr("height", height);
+
+                var orig = document.body.onresize;
+                document.body.onresize = function(ev) {
+                    if (orig)
+                        orig(ev);
+
+                    var w = viewport();
+                    svg.attr("width", w.width);
+                    svg.attr("height", w.height);
+                }
+
+                var hwSchematic = new d3.HwSchematic(svg);
+
+
+                hwSchematic.layouter._applyLayout = function(kgraph) {
+                  this.zoomToFit(kgraph);
+                  // var nodeMap = {};
+                  // // convert to absolute positions
+                  // toAbsolutePositions(kgraph, { x: 0, y: 0 }, nodeMap);
+                  // toAbsolutePositionsEdges(kgraph, nodeMap);
+                  // copyElkProps(kgraph, this.graph, this._d3ObjMap);
+                  // this._layoutCache[this._currentLayoutCacheKey] = serializeLayout(this.graph);
+                  return this.graph;
+                };
+
+
+                hwSchematic._PERF = true;
+                var zoom = d3.zoom();
+                zoom.on("zoom", function applyTransform(ev) {
+                    hwSchematic.root.attr("transform", ev.transform)
+                });
+
+                // disable zoom on doubleclick
+                // because it interferes with component expanding/collapsing
+                svg.call(zoom)
+                .on("dblclick.zoom", null)
+
+hwSchematic.bindData(
+{
+  "id": "top_frame",
+  "ports": [],
+  "children": [
+    {
+      "id": "top_top",
+      "$H": 13,
+      "height": 200,
+      "width": 200,
+      "ports": [
+        {
+          "id": "top_top/in1",
+          "direction": "INPUT",
+          "hwMeta": { "name": "in1"},
+          "properties": { "index": 1, "side": "WEST"}},
+        {
+          "id": "top_top/in2",
+          "direction": "INPUT",
+          "hwMeta": { "name": "in2"},
+          "properties": { "index": 1, "side": "WEST"}},
+        {
+          "id": "top_top/out1",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": "out1"},
+          "properties": { "index": 1, "side": "EAST"}},
+        {
+          "id": "top_top/out2",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": "out2"},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "_children": [],
+      "_edges": [
+        {
+          "id": 1,
+          "hwMeta": { "name": "in1", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "top_top",
+              "top_top/in1"
+            ]
+          ],
+          "targets": []},
+        {
+          "id": 2,
+          "hwMeta": { "name": "in2", "cssClass": "link-style1"},
+          "sources": [
+            [
+              "top_top",
+              "top_top/in2"
+            ]
+          ],
+          "targets": []},
+        {
+          "id": 3,
+          "hwMeta": { "name": "out1", "cssClass": "link-style0"},
+          "sources": [
+            [
+              "top_top",
+              "top_top/out1"
+            ]
+          ],
+          "targets": []},
+        {
+          "id": 4,
+          "hwMeta": { "name": "out2", "cssClass": "link-style1"},
+          "sources": [
+            [
+              "top_top",
+              "top_top/out2"
+            ]
+          ],
+          "targets": []}
+      ],
+      "hwMeta": { "bodyText": "top_top", "cls": "Process"},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "in1_port",
+      "ports": [
+        {
+          "id": "in1",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "in1", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "in2_port",
+      "ports": [
+        {
+          "id": "in2",
+          "direction": "OUTPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "EAST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "in2", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "out1_port",
+      "ports": [
+        {
+          "id": "out1",
+          "direction": "INPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "WEST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "out1", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    },
+    {
+      "id": "out2_port",
+      "ports": [
+        {
+          "id": "out2",
+          "direction": "INPUT",
+          "hwMeta": { "name": ""},
+          "properties": { "index": 1, "side": "WEST"}}
+      ],
+      "_children": [],
+      "_edges": [],
+      "hwMeta": { "bodyText": "out2", "cls": "Process", "isExternalPort": true},
+      "properties": {
+        "org.eclipse.elk.layered.mergeEdges": 1,
+        "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "in1_conn",
+      "hwMeta": { "name": "in1_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/in1"
+        ]
+      ],
+      "targets": [
+        [
+          "in1_port",
+          "in1"
+        ]
+      ]},
+    {
+      "id": "in2_conn",
+      "hwMeta": { "name": "in2_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/in2"
+        ]
+      ],
+      "targets": [
+        [
+          "in2_port",
+          "in2"
+        ]
+      ]},
+    {
+      "id": "out1_conn",
+      "hwMeta": { "name": "out1_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/out1"
+        ]
+      ],
+      "targets": [
+        [
+          "out1_port",
+          "out1"
+        ]
+      ]},
+    {
+      "id": "out2_conn",
+      "hwMeta": { "name": "out2_conn", "cssClass": "link-style0"},
+      "sources": [
+        [
+          "top_top",
+          "top_top/out2"
+        ]
+      ],
+      "targets": [
+        [
+          "out2_port",
+          "out2"
+        ]
+      ]}
+  ],
+  "hwMeta": { "maxId": 5},
+  "properties": {
+    "org.eclipse.elk.layered.mergeEdges": 1,
+    "org.eclipse.elk.portConstraints": "FIXED_SIDE"
+  }
+});var currentFileName = 'top_top.json';
+        </script>
+        </body>
+        </html>

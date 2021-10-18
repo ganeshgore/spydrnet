@@ -268,6 +268,9 @@ class HRef(GetterShortcuts):
         name = self.name
         return name
 
+    def get_flyweight(self):
+        return flyweight
+
     @property
     def is_unique(self):
         """

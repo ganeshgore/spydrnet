@@ -150,7 +150,7 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     'figure_align': 'H',
-	
+
 	# Oneside (remove blank pages)
 	#
 	'extraclassoptions': 'openany,oneside'
