@@ -14,6 +14,3 @@ from spydrnet.util.get_hcables import get_hcables
 from spydrnet.util.get_hwires import get_hwires
 
 from spydrnet.util.hierarchical_reference import HRef
-
-from spydrnet.util.shell import launch_shell
-from spydrnet.util.renders import start_gui
