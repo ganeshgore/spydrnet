@@ -7,7 +7,7 @@ on:
     paths:
       - "docs/**"
       - "examples/**"
-      - ".github/**"
+      - ".github/workflows/docs.yml"
 
 jobs:
   build_docs:

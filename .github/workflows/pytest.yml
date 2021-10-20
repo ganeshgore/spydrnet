@@ -21,9 +21,11 @@ jobs:
     - name: install requirements
       run: |
         python --version
+        pip --version
         pip install --upgrade pip
         pip install -r requirements.txt --user
         pip freeze
+        python -c "from IPython.terminal.ipapp import load_default_config"
     - name: Run Pytest for SpyDrNet
       uses: cclauss/GitHub-Action-for-pytest@master
       with:

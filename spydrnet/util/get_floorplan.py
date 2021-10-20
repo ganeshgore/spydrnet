@@ -5,11 +5,11 @@ from typing import NewType
 from svgwrite import Drawing
 from svgwrite.shapes import Polyline
 from svgwrite.container import Group
-from spydrnet import base_dir as PROJ_BASE_DIR
 
 
 logger = logging.getLogger('spydrnet_logs')
 base_dir = os.path.dirname(os.path.abspath(__file__))
+PROJ_BASE_DIR = os.path.abspath(os.path.join(base_dir, ".."))
 
 PROPERTY = "VERILOG.InlineConstraints"
 
