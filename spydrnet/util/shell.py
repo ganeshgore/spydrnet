@@ -7,7 +7,7 @@ from IPython.core.interactiveshell import InteractiveShell
 
 class MyPrompt(Prompts):
     def in_prompt_tokens(self, cli=None):
-        return [(Token, "PhyFloTa"),
+        return [(Token, "spydrnet"),
                 (Token.Prompt, ' >>> ')]
 
 
