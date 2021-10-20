@@ -116,8 +116,8 @@ class TestPort(unittest.TestCase):
 
     @unittest.expectedFailure
     def test_inner_wires(self):
-        pass
+        self.assertTrue(False)
 
     @unittest.expectedFailure
     def test_outer_wires(self):
-        pass
+        self.assertTrue(False)

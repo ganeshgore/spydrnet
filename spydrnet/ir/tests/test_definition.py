@@ -5,6 +5,7 @@ from spydrnet.ir.cable import Cable
 from spydrnet.ir.definition import Definition
 from spydrnet.ir.first_class_element import FirstClassElement
 from spydrnet.ir.port import Port
+from spydrnet.util import library
 
 
 class TestDefinition(unittest.TestCase):
@@ -198,19 +199,24 @@ class TestDefinition(unittest.TestCase):
                 "quiet option not supressing error")
 
     def test_create_feedthroughs_ports(self):
+        netlist = sdn.Netlist("test_netlist")
+        library = netlist.create_library("test_lib")
+        self.definition._library = library
         cable = sdn.Cable("cable1")
         cable.create_wires(4)
         port1, port2 =self.definition.create_feedthroughs_ports(cable, suffix="feed")
         self.assertIsInstance(port1, Port)
         self.assertIsInstance(port2, Port)
-        self.assertFalse(set(port1.inner_wires).difference(port2.inner_wires))
+        # TODO: Need to check if assignment block is created beetween two ports
         self.assertSetEqual(set(sdn.get_names(self.definition.ports)),
                             {"cable1_feed_in", "cable1_feed_out"})
 
 
     def test_create_feedthrough(self):
-        module1 = Definition("module1")
-        module2 = Definition("module2")
+        netlist = sdn.Netlist("test_netlist")
+        library = netlist.create_library("test_lib")
+        module1 = library.create_definition("module1")
+        module2 = library.create_definition("module2")
         driver_port = module1.create_port("driver_port", direction=sdn.OUT)
         load_port = module1.create_port("load_port", direction=sdn.IN)
         driver_port.create_pins(4)
@@ -247,8 +253,10 @@ class TestDefinition(unittest.TestCase):
             "Checks if feethrough wire name is as expected ")
 
     def test_create_feedthrough_multiple(self):
-        module1 = Definition("module1")
-        module2 = Definition("module2")
+        netlist = sdn.Netlist("test_netlist")
+        library = netlist.create_library("test_lib")
+        module1 = library.create_definition("module1")
+        module2 = library.create_definition("module2")
         driver_port = module1.create_port("driver_port", direction=Port.Direction.OUT)
         load_port = module1.create_port("load_port", direction=Port.Direction.IN)
         driver_port.create_pins(4)
@@ -273,7 +281,7 @@ class TestDefinition(unittest.TestCase):
         cable2.connect_instance_port(inst3, load_port)
 
         mapping = ((cable1, (ft_inst1,)), (cable2, (ft_inst2,)))
-        new_cables = self.definition.create_feedthrough_multiple(mapping)
+        new_cables, _ = self.definition.create_feedthrough_multiple(mapping)
 
 
         self.assertEqual(new_cables[0].size, 4, \
@@ -281,30 +289,32 @@ class TestDefinition(unittest.TestCase):
         self.assertEqual(new_cables[1].size, 4, \
                 "New cable should have same dimensions")
 
-        self.assertSetEqual(set(('cable1', 'cable1_ft_in_0')),
+        self.assertSetEqual(set(('cable1', 'cable1_ft_0')),
             set(sdn.get_names(ft_inst1.get_cables(selection="OUTSIDE"))),
             "Checks if feethrough wire name is as expected ")
-        self.assertSetEqual(set(('cable2', 'cable2_ft_in_0')),
+        self.assertSetEqual(set(('cable2', 'cable2_ft_0')),
             set(sdn.get_names(ft_inst2.get_cables(selection="OUTSIDE"))),
             "Checks if feethrough wire name is as expected ")
 
         self.assertSetEqual(set(('cable1',)),
             set(sdn.get_names(inst0.get_cables(selection="OUTSIDE"))),
             "Checks if feethrough wire name is as expected ")
-        self.assertSetEqual(set(('cable1_ft_in_0',)),
+        self.assertSetEqual(set(('cable1_ft_0',)),
             set(sdn.get_names(inst1.get_cables(selection="OUTSIDE"))),
             "Checks if feethrough wire name is as expected ")
         self.assertSetEqual(set(('cable2',)),
             set(sdn.get_names(inst2.get_cables(selection="OUTSIDE"))),
             "Checks if feethrough wire name is as expected ")
-        self.assertSetEqual(set(('cable2_ft_in_0',)),
+        self.assertSetEqual(set(('cable2_ft_0',)),
             set(sdn.get_names(inst3.get_cables(selection="OUTSIDE"))),
             "Checks if feethrough wire name is as expected ")
 
     def test_create_feedthrough_multiple_2(self):
         ''' Test feedthroughs from multiple groups of instances '''
-        module1 = Definition("module1")
-        module2 = Definition("module2")
+        netlist = sdn.Netlist("test_netlist")
+        library = netlist.create_library("test_lib")
+        module1 = library.create_definition("module1")
+        module2 = library.create_definition("module2")
         driver_port = module1.create_port("driver_port", direction=Port.Direction.OUT)
         load_port = module1.create_port("load_port", direction=Port.Direction.IN)
         driver_port.create_pins(4)
@@ -333,7 +343,7 @@ class TestDefinition(unittest.TestCase):
         mapping = ((cable1, (ft_inst1, ft_inst11)),
                    (cable2, (ft_inst2, ft_inst22)))
 
-        new_cables = self.definition.create_feedthrough_multiple(mapping)
+        new_cables, _ = self.definition.create_feedthrough_multiple(mapping)
 
         for cable in new_cables:
             self.assertIsInstance(cable, Cable, \
@@ -368,6 +378,9 @@ class TestDefinition(unittest.TestCase):
             "Checks if feethrough wire name is as expected ")
 
     def test_duplicate_port(self):
+        netlist = sdn.Netlist("test_netlist")
+        library = netlist.create_library("test_lib")
+        self.definition._library = library
         pin = self.definition.create_port("pin", pins=4)
         pout = self.definition.create_port("pout", pins=4)
         pin.direction = pin.Direction.IN
@@ -381,5 +394,4 @@ class TestDefinition(unittest.TestCase):
         self.assertIsNot(pin2, pin)
         self.assertEqual(pin2.size, pin.size)
         self.assertEqual(pin2.direction, pin.direction)
-        self.assertTrue(False)
-        # Need more test to check if its feedthrough correctly
+        # Need more test to check if its feedthrough are created correctly

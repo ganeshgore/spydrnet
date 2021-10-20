@@ -757,19 +757,17 @@ class Definition(FirstClassElement):
         assert self.library, "Library is not defined for the definition"
         assert self.library.netlist, "netlist is not defined for the library definition"
         netlist = self.library.netlist
-        assign_library = next(
-            chain(netlist.get_libraries("SDN_VERILOG_ASSIGNMENT"), None))
-        if not assign_library:
-            logger.info("Missing SDN_VERILOG_ASSIGNMENT libarary" + \
+        assign_library = next(netlist.get_libraries("SDN_VERILOG_ASSIGNMENT"), None)
+        if assign_library is None:
+            logger.info("Missing SDN_VERILOG_ASSIGNMENT libarary " + \
                         "Creating new")
-            assign_library = netlist.create_library(
-                name="SDN_VERILOG_ASSIGNMENT")
+            assign_library = netlist.create_library(name="SDN_VERILOG_ASSIGNMENT")
         return assign_library
 
     def _get_assignment_definition(self, assign_library, size):
         assign_def_name = f"SDN_VERILOG_ASSIGNMENT_{size}"
         definition = next(assign_library.get_definitions(assign_def_name), None)
-        if not definition:
+        if definition is None:
             definition = assign_library.create_definition(name=assign_def_name)
             p_in = definition.create_port("i", pins=size)
             p_out = definition.create_port("o", pins=size)
@@ -778,6 +776,7 @@ class Definition(FirstClassElement):
             cable = definition.create_cable("through", wires=size)
             cable.connect_port(p_in)
             cable.connect_port(p_out)
+        print(definition)
         return definition
 
     def duplicate_port(self, port, portname=None) -> Port:
