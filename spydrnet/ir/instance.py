@@ -49,6 +49,17 @@ class Instance(FirstClassElement):
                 self[key] = properties[key]
 
     @property
+    def href_get_x(self):
+        """Get the definition that contains this instance"""
+        # Checking attribute because isinstance requires HRef which causes
+        # cyclic imports
+        if hasattr(self, "item"):
+            print("Provide recursive version")
+        else:
+            print(f"Provide static version")
+        return 10
+
+    @property
     def parent(self):
         """Get the definition that contains this instance"""
         return self._parent

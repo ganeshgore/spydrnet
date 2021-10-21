@@ -1,10 +1,16 @@
 import spydrnet.ir as ir
 import weakref
+from types import MethodType
 
 from spydrnet.shortcuts.getter import GetterShortcuts
 
 flyweight = weakref.WeakKeyDictionary()
 
+def _get_href_property(topModule):
+    methods = {}
+    for method in [attribute for attribute in dir(topModule) if attribute.startswith('href_') is True]:
+        methods.update({method: getattr(topModule.__class__, method)})
+    return methods
 
 class HRef(GetterShortcuts):
     """A hierarchical reference to a specific element in a netlist.
@@ -217,7 +223,12 @@ class HRef(GetterShortcuts):
         item - the item that the href is reference to
 
         """
-        href = HRef(item, parent)
+        additionProperties = _get_href_property(item)
+        # additionProperties ={
+        #     "href_get_x": lambda x: type(x)
+        # }
+        newHRef = type("newHRef", (HRef,), additionProperties)
+        href = newHRef(item, parent)
         if href in flyweight:
             return flyweight[href]()
         else:
