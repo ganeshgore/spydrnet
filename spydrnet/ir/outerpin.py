@@ -73,7 +73,8 @@ class OuterPin(Pin):
         clone leaving all references in tact.
         the element can then either be ripped or ripped and replaced"""
         assert self not in memo, "the object should not have been copied twice in this pass"
-        c = OuterPin()
+        from spydrnet.ir import OuterPin as OuterPinExtended
+        c = OuterPinExtended()
         memo[self] = c
         c._instance = None
         c._inner_pin = self._inner_pin

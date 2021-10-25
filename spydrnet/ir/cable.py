@@ -159,7 +159,8 @@ class Cable(Bundle):
         clone leaving all references in tact.
         the element can then either be ripped or ripped and replaced"""
         assert self not in memo, "the object should not have been copied twice in this pass"
-        c = Cable()
+        from spydrnet.ir import Cable as CableExtended
+        c = CableExtended()
         memo[self] = c
         new_wires = list()
         for w in self._wires:
