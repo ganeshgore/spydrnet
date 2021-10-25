@@ -1,5 +1,5 @@
-from spydrnet.ir.element import Element
-from spydrnet.ir.outerpin import OuterPin
+from spydrnet.ir import Element
+from spydrnet.ir import OuterPin
 from spydrnet.ir.views.listview import ListView
 from spydrnet.global_state import global_callback
 from copy import copy, deepcopy, error
@@ -9,7 +9,7 @@ class Wire(Element):
     """
     Represents a wire object
     """
-    __slots__ = ['_cable', '_pins', '__weakref__']
+    __slots__ = ['_cable', '_pins',]
 
     def __init__(self):
         self._cable = None
@@ -152,7 +152,7 @@ class Wire(Element):
         return c
 
     def clone(self):
-        """clone wire in an api safe way. 
+        """clone wire in an api safe way.
 
         The following properties can be expected from the returned element:
          * The wire is not connected to any pins.
@@ -169,7 +169,7 @@ class Wire(Element):
         assert self.cable is not None, "the wire does not belong to a cable"
 
         return self.cable.wires.index(self)
-    
+
     def __str__(self):
         """Re-define the print function so it is easier to read"""
         rep = str(type(self))

@@ -1,4 +1,4 @@
-from spydrnet.ir.pin import Pin
+from spydrnet.ir import Pin
 from copy import deepcopy, copy, error
 
 

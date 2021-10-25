@@ -1,6 +1,6 @@
-from spydrnet.ir.bundle import Bundle
-from spydrnet.ir.innerpin import InnerPin
-from spydrnet.ir.outerpin import OuterPin
+from spydrnet.ir import Bundle
+from spydrnet.ir import InnerPin
+from spydrnet.ir import OuterPin
 from spydrnet.ir.views.listview import ListView
 from spydrnet.global_state import global_callback
 from spydrnet.global_state.global_callback import _call_create_port
@@ -187,7 +187,7 @@ class Port(Bundle):
         self._pins.remove(pin)
 
     def remove_pins_from(self, pins):
-        """Remove several pins from the port at once. 
+        """Remove several pins from the port at once.
 
         The wires are disconnected from the pins that are removed.
 
@@ -208,7 +208,7 @@ class Port(Bundle):
         self._pins = list(x for x in self._pins if x not in exclude_pins)
 
     def _remove_pin(self, pin):
-        """Internal pin removal function. 
+        """Internal pin removal function.
         Disconnects the wires from the pin and remvoes all the pins reference to other pins."""
         global_callback._call_port_remove_pin(self, pin)
         if self.definition:
