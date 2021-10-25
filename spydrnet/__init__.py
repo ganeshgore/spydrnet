@@ -101,9 +101,6 @@ def enable_file_logging(LOG_LEVEL=None):
     logger.addHandler(file_handler)
     return file_handler
 
-# from spydrnet.util.shell import launch_shell
-# from spydrnet.util.renders import start_gui
-# from spydrnet.util.get_names import get_names
 def load_example_netlist_by_name(name):
     assert name in example_netlist_names, "Example netlist not found"
     return parse(os.path.join(base_dir, 'support_files', 'EDIF_netlists', name + ".edf.zip"))
