@@ -1,6 +1,6 @@
 from collections import deque, OrderedDict
-from spydrnet.ir.port import Port
-from spydrnet.ir.cable import Cable
+from spydrnet.ir import Port
+from spydrnet.ir import Cable
 import spydrnet.parsers.verilog.verilog_tokens as vt
 
 
@@ -236,7 +236,7 @@ class Composer:
         self.file.write(vt.NEW_LINE)
 
     def _write_module_header_port(self, port):
-        '''does not write the input output or width, 
+        '''does not write the input output or width,
         check for concatenation port as well'''
         self.file.write((self.indent_count * vt.SPACE))
         aliased = self._is_pinset_concatenated(port.pins, port.name)
@@ -447,7 +447,7 @@ class Composer:
         #the bundle is multibit and the indicies match the upper and lower(or none): nothing to be written
         #the bundle is multibit but the indicies match each other or one is none: write a single index
         #the bundle is multibit but the indicies don't match each other: write both indicies
-        
+
         if width == 1:
             assert (low_index == None or low_index == lower_bundle), \
                 self._error_string("attempted to index bundle out of bounds at " + str(low_index), bundle)
@@ -513,7 +513,7 @@ class Composer:
             if next_name != name and not now_none:
                 aliased = True
                 break
-            
+
         return aliased
 
     def _all_wires_and_cables_from_pinset(self, pins):
