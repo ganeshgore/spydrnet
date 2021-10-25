@@ -1,4 +1,20 @@
 
+import typing
+if typing.TYPE_CHECKING:
+    from spydrnet.ir.element import Element
+    from spydrnet.ir.first_class_element import FirstClassElement
+    from spydrnet.ir.netlist import Netlist
+    from spydrnet.ir.library import Library
+    from spydrnet.ir.definition import Definition
+    from spydrnet.ir.port import Port
+    from spydrnet.ir.cable import Cable
+    from spydrnet.ir.wire import Wire
+    from spydrnet.ir.instance import Instance
+    from spydrnet.ir.innerpin import InnerPin
+    from spydrnet.ir.outerpin import OuterPin
+    from spydrnet.ir.bundle import Bundle
+    from spydrnet.ir.pin import Pin
+
 # Following section will extend all the classes imported in this file
 import importlib
 from spydrnet import get_active_plugins
@@ -31,15 +47,3 @@ for name, plugin in get_active_plugins().items():
             cls_bases = (ext_cls, cls)
             locals()[eachModule] = type(cls.__name__, cls_bases, {})
         print(f"Adding {eachModule}")
-        # print(locals().keys())
-
-
-# from importlib import import_module
-
-# for name, _ in get_active_plugins().items():
-#     module_path = cls.__module__.replace(
-#         "spydrnet", name).split(".")
-#     cls_name = cls.__name__.replace("Base", '')
-#     ext_cls = getattr(import_module(".".join(module_path)), cls_name)
-#     cls_bases = (ext_cls, cls)
-#     locals()[eachModule] = type(cls.__name__, cls_bases, {})
