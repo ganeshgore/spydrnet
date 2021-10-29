@@ -7,7 +7,7 @@ import spydrnet as sdn
 
 class Composer:
 
-    def __init__(self, definition_list=[], write_blackbox=True, defparam=False, reverse=False, skip_constraints=False, sort_all=False, show_assign_instance_name=False):
+    def __init__(self, definition_list=[], write_blackbox=True, skip_constraints=False, sort_all=False, show_assign_instance_name=False):
         """ Write a verilog netlist from SDN netlist
 
         parameters
@@ -29,12 +29,9 @@ class Composer:
         self.indent_count = 4  # set the indentation level for various components
         self.write_blackbox = write_blackbox
         self.definition_list = definition_list
-        self.defparam = defparam
         self.skip_constraints = skip_constraints
         self.sort_all = sort_all
         self.show_assign_instance_name = show_assign_instance_name
-        self.module_body_ports_written = []
-        self.reverse = reverse
 
     def run(self, ir, file_out="out.v"):
         self._open_file(file_out)
@@ -82,29 +79,6 @@ class Composer:
             )
             self._write_module(definition)
 
-    def _write_from_bottom(self, instance):
-        # ****this may need more work****
-        visited = []
-        to_write_list = deque()
-        to_write_stack = []
-        to_write_list.append(instance.reference)
-        to_write_stack.append(instance.reference)
-        while len(to_write_list) != 0:
-            definition = to_write_list.popleft()
-            if definition in visited:
-                continue
-            visited.append(definition)
-            for c in definition.children:
-                if c.reference not in visited:
-                    to_write_list.append(c.reference)
-                    to_write_stack.append(c.reference)
-        # print(list(x.name for x in to_write_stack if len(x.children) > 0))
-        while to_write_stack:
-            definition = to_write_stack.pop()
-            if definition not in self.written:
-                self.written.add(definition)
-                self._write_module(definition)
-
     ###########################################################################
     # Write verilog constructs
     ###########################################################################
@@ -120,7 +94,7 @@ class Composer:
     def _write_star_constraints(self, o):
         if "VERILOG.InlineConstraints" in o and \
                 len(o["VERILOG.InlineConstraints"]) != 0 and \
-                self.skip_constraints is False:
+                self.skip_constraints == False:
             dictionary = o["VERILOG.InlineConstraints"]
             self.file.write(vt.OPEN_PARENTHESIS)
             self.file.write(vt.STAR)
@@ -216,7 +190,6 @@ class Composer:
                     self.file.write(to_write)
 
     def _write_module_body_ports(self, definition):
-        self.module_body_ports_written = []
         for p in self._sorted(definition.ports, "{x.direction}_{x.name}"):
             self._write_module_body_port(p)
         self.file.write(vt.NEW_LINE)
@@ -227,9 +200,6 @@ class Composer:
             # adding the port will let composer to still print out disconnected ports
             cables.append(port)
         for c in self._sorted(cables, "{x.name}"):
-            if c.name in self.module_body_ports_written:
-                continue
-            self.module_body_ports_written.append(c.name)
             self._write_star_constraints(port)
             self.file.write(self.indent_count * vt.SPACE)
             self.file.write(self.direction_string_map[port.direction])
@@ -240,11 +210,7 @@ class Composer:
             self.file.write(vt.NEW_LINE)
 
     def _write_module_body_cables(self, definition):
-        cable_list = list(c for c in definition.cables)
-        cable_list.reverse()
-        for c in self._sorted(cable_list, "{x.name}"):
-            if c.name in [vt.CONST0, vt.CONST1] and not self._has_driver(c):
-                continue
+        for c in self._sorted(definition.cables, "{x.name}"):
             self._write_module_body_cable(c)
         self.file.write(vt.NEW_LINE)
 
@@ -573,48 +539,14 @@ class Composer:
         self.file.write(vt.CLOSE_PARENTHESIS)
 
     def _write_name(self, o):
-        """write the name of an o. this is split out to give an error message if the name is not set
-        In the future this could be changed to add a name to os that do not have a name set
-        """
-        name = o.name
-        if isinstance(o, Cable):
-            if name in [vt.CONST0, vt.CONST1]:
-                name = self._rename_constant(o)
-
-        assert name is not None, self._error_string("name of o is not set", o)
-        name = self._fix_name(name)
-        self.file.write(name)
-
-    def _rename_constant(self, cable):
-        """
-        \<const0> and \<const1> wires without a driver should be renamed to 1'b0 and 1'b1
-        Otherwise keep the original name
-        """
-        name = cable.name
-        if isinstance(cable, Cable):
-            if not self._has_driver(cable):
-                if name == vt.CONST0:
-                    name = "1'b0"
-                if name == vt.CONST1:
-                    name = "1'b1"
-        return name
-
-    def _has_driver(self, cable):
-        for wire in cable.wires:
-            for pin in wire.pins:
-                if isinstance(pin, sdn.InnerPin):
-                    if pin.port.definition is cable.definition:
-                        if pin.port.direction is sdn.IN:
-                            return True
-                elif pin.inner_pin.port.direction is sdn.OUT:
-                    return True
-        return False
-
-    def _fix_name(self, name):
-        if name[0] == "\\":
-            if name[-1] != " ":
-                name += " "
-        return name
+        '''write the name of an o. this is split out to give an error message if the name is not set
+        In the future this could be changed to add a name to os that do not have a name set'''
+        assert o.name is not None, self._error_string(
+            "name of o is not set", o)
+        if o.name[0] == '\\':
+            assert o.name[-1] == ' ', self._error_string(
+                "the o name starts with escape and does not end with a space.", o)
+        self.file.write(o.name)
 
     def _write_brackets_defining(self, bundle):
         """write the brackets for port or cable definitions"""

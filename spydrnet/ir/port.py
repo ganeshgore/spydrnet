@@ -167,7 +167,6 @@ class Port(Bundle):
         the inner_pin created
         """
         from spydrnet.ir import InnerPin as InnerPinExtended
-
         pin = InnerPinExtended()
         self.add_pin(pin)
         if self.definition:
@@ -267,11 +266,8 @@ class Port(Bundle):
         Clone leaving all references in tact.
         The element can then either be ripped or ripped and replaced.
         """
-        assert (
-            self not in memo
-        ), "the object should not have been copied twice in this pass"
+        assert self not in memo, "the object should not have been copied twice in this pass"
         from spydrnet.ir import Port as PortExtended
-
         c = PortExtended()
         memo[self] = c
         c._direction = deepcopy(self._direction)

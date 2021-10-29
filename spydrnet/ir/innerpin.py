@@ -47,11 +47,8 @@ class InnerPin(Pin):
 
         Clone leaving all references in tact.
         the element can then either be ripped or ripped and replaced"""
-        assert (
-            self not in memo
-        ), "the object should not have been copied twice in this pass"
+        assert self not in memo, "the object should not have been copied twice in this pass"
         from spydrnet.ir import InnerPin as InnerPinExtended
-
         c = InnerPinExtended()
         memo[self] = c
         c._wire = self._wire

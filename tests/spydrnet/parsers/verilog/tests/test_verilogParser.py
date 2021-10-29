@@ -719,7 +719,12 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_add_to_front_of_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
-        # name,left,right,type,cable,expected_lower,expected_width, expected_downto
+        
+        tests =\
+            [("preexisting1", 15, 0, None, c1, 0, 16),\
+            ("preexisting2", 0, -16, None, c2, -16, 32),\
+            ("preexisting3", 0, 17, None, c3, 0, 20)]
+        self.add_to_cable_helper(tests, parser)
 
         tests = [
             ("preexisting1", 15, 0, None, c1, 0, 16),
@@ -730,6 +735,12 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_add_to_back_of_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
+        
+        tests =\
+            [("preexisting1", 31, 16, None, c1, 8, 24),\
+            ("preexisting2", 31, 8, None, c2, 0, 32),\
+            ("preexisting3", 0, 63, None, c3, 0, 64)]
+        self.add_to_cable_helper(tests, parser)
 
         tests = [
             ("preexisting1", 31, 16, None, c1, 8, 24),
@@ -762,12 +773,11 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_dont_change_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
-
-        tests = [
-            ("preexisting1", 15, 8, None, c1, 8, 8),
-            ("preexisting2", 15, 0, None, c2, 0, 16),
-            ("preexisting3", 19, 16, None, c3, 16, 4),
-        ]
+        
+        tests =\
+            [("preexisting1", 15, 8, None, c1, 8, 8),\
+            ("preexisting2", 15, 0, None, c2, 0, 16),\
+            ("preexisting3", 16, 19, None, c3, 16, 4)]
         self.add_to_cable_helper(tests, parser)
 
     def test_single_index_cable(self):
@@ -790,11 +800,9 @@ class TestVerilogParser(unittest.TestCase):
     def test_change_cable_downto(self):
         # i don't think the cable downto-ness should ever change. this is tested in the add to cable helper
         parser, c1, c2, c3 = self.init_cable_creation()
-
-        tests = [("preexisting1", 15, 8, None, c1, 8, 8)]
-        self.add_to_cable_helper(tests, parser)
-        c1.is_downto = False
-        tests = [("preexisting1", 8, 15, None, c1, 8, 8)]
+        
+        tests =\
+            [("preexisting1", 15, 8, None, c1, 8, 8),]
         self.add_to_cable_helper(tests, parser)
 
     def test_cable_prepend_wires(self):

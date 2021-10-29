@@ -811,6 +811,18 @@ class VerilogParser:
         )
         cable["VERILOG.InlineConstraints"] = properties
 
+        token = self.next_token()
+        while (token == vt.COMMA):
+            token = self.next_token()
+            name = token
+            cable = self.create_or_update_cable(
+                name, left_index=left, right_index=right, var_type=var_type)
+            cable["VERILOG.InlineConstraints"] = properties
+            token = self.next_token()
+
+        assert token == vt.SEMI_COLON, self.error_string(
+            vt.SEMI_COLON, "to end cable declaration", token)
+
     def parse_instantiation(self, properties):
         token = self.next_token()
         assert vt.is_valid_identifier(token), self.error_string(
@@ -1235,57 +1247,19 @@ class VerilogParser:
         """
         token = self.next_token()
 
-        names_list = []
-
-        if re.match("[0-9]+'", token):
-            quote_pos = token.index('\'')
-            bits_num = int(token[0:quote_pos])
-            bdh_char = token[quote_pos + 1]
-
-            bits_entry = token[quote_pos + 2:]
-            bits_list = []
-
-            #need to preserve order as it is to match the other side of expression
-            if bdh_char == 'b':
-                bits_list = list(bits_entry[::1])
-            elif bdh_char == 'd':
-                bin_data = bin(int(bits_entry))[2:]
-                bits_list = list(bin_data[::1])
-            elif bdh_char == 'h':
-                bin_data = bin(int(bits_entry, 16))[2:]
-                bits_list = list(bin_data[::1])
-            else:
-                assert False, self.error_string('bdh', "in the constant", token)
-
-            assert len(bits_list) == bits_num, self.error_string(
-                len(bits_list), "in size of the constant", token
-            )
-
-            for bit in bits_list:
-                name = "\\<const" + bit + "> "
-                names_list.append(name)
+        if token[0] == "1":
+            assert token[1] == vt.SINGLE_QUOTE, self.error_string(vt.SINGLE_QUOTE, "in the constant", token)
+            assert token[2] == 'b', self.error_string('b', "in the constant", token)
+            assert token[3] in ["0", "1", "x", "X", "z", "Z"], self.error_string("one of 0, 1, x, X, z, Z", "represent the constant value after '", token)
+            name = "\\<const" + token[3] + "> "
+        elif vt.is_numeric(token[0]):
+            assert False, self.error_string("single bit constant", "multibit constants not supported", token)
         else:
             names_list.append(token)
 
         result_cables_list = []
 
-        #processing each name entry
-        for name in names_list:
-            assert vt.is_valid_identifier(name), self.error_string(
-                "valid port identifier", "for port in instantiation port map", name
-            )
-            token = self.peek_token()
-            left = None
-            right = None
-            if token == vt.OPEN_BRACKET:
-                left, right = self.parse_brackets()
-
-            cable = self.create_or_update_cable(
-                name.strip(), left_index=left, right_index=right)
-
-            result_cables_list.append((cable, left, right))
-
-        return result_cables_list
+        return cable, left, right
 
     def parse_brackets(self):
         """returns 2 integer values or 1 integer value and none"""

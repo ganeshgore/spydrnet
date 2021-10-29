@@ -99,18 +99,17 @@ TIMESCALE = "`timescale"
 OPEN_BLOCK_COMMENT = "/*"
 CLOSE_BLOCK_COMMENT = "*/"
 OPEN_LINE_COMMENT = "//"
-PRIMITIVE = "primitive"
-END_PRIMITIVE = "endprimitive"
-FUNCTION = "function"
-END_FUNCTION = "endfunction"
-TASK = "task"
-END_TASK = "endtask"
-INTEGER = "integer"
-TRI0 = "tri0"
-TRI1 = "tri1"
-DEFPARAM = "defparam"
-CONST0 = "\\<const0>"
-CONST1 = "\\<const1>"
+PRIMITIVE = 'primitive'
+END_PRIMITIVE = 'endprimitive'
+FUNCTION = 'function'
+END_FUNCTION = 'endfunction'
+TASK = 'task'
+END_TASK = 'endtask'
+INTEGER = 'integer'
+TRI0 = 'tri0'
+TRI1 = 'tri1'
+DEFPARAM = 'defparam'
+DEFUALT_NETTYPE = "`default_nettype"
 
 # SET OF ALL THINGS THAT WILL END AN IDENTIFIER IF THEY ARE NOT ESCAPED.
 # elif ch in {'(', ')', '.', ',', ';', '[', ']', ':', "{", "}", "*", "#", "`"}:

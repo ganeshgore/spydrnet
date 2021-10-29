@@ -158,11 +158,8 @@ class Wire(Element):
 
         clone leaving all references in tact.
         the element can then either be ripped or ripped and replaced"""
-        assert (
-            self not in memo
-        ), "the object should not have been copied twice in this pass"
+        assert self not in memo, "the object should not have been copied twice in this pass"
         from spydrnet.ir import Wire as ExtendedWire
-
         c = ExtendedWire()
         memo[self] = c
         c._cable = None
@@ -198,13 +195,8 @@ class Wire(Element):
         elif self.cable.name is None:
             rep += "Contained by Cable whose name is undefined"
         else:
-            rep += (
-                "Contained by Cable.name '"
-                + str(self.cable.name)
-                + "' "
-                + str(self.cable)
-            )
-        rep += ">"
+            rep += 'Cotained by Cable.name \'' + str(self.cable.name) + '\''
+        rep += '>'
         return rep
 
     def get_driver(self):

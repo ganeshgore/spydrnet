@@ -166,11 +166,8 @@ class Instance(FirstClassElement):
         clone the instance leaving all references in tact.
         The instance can then either be ripped or ripped and replaced
         """
-        assert (
-            self not in memo
-        ), "the object should not have been copied twice in this pass"
+        assert self not in memo, "the object should not have been copied twice in this pass"
         from spydrnet.ir import Instance as InstanceExtended
-
         c = InstanceExtended()
         memo[self] = c
         c._parent = None
