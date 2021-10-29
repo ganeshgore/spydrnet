@@ -26,7 +26,6 @@ class Composer:
         self.write_blackbox = write_blackbox
         self.definition_list = definition_list
 
-
     def run(self, ir, file_out="out.v"):
         self._open_file(file_out)
         self._compose(ir)
@@ -65,7 +64,6 @@ class Composer:
                 "definition has no name set", definition)
             self._write_module(definition)
 
-
     ###########################################################################
     # Write verilog constructs
     ###########################################################################
@@ -88,7 +86,7 @@ class Composer:
             for k, v in dictionary.items():
                 if v is not None:
                     self.file.write(first + k + vt.SPACE +
-                                    vt.EQUAL + vt.SPACE + v)
+                                    vt.EQUAL + vt.SPACE + str(v))
                 else:
                     self.file.write(first + k)
                 first = vt.COMMA + vt.SPACE
@@ -174,7 +172,8 @@ class Composer:
     def _write_module_body_port(self, port):
         _, cables = self._all_wires_and_cables_from_pinset(port.pins)
         if len(cables) == 0:
-            cables.append(port) #adding the port will let composer to still print out disconnected ports
+            # adding the port will let composer to still print out disconnected ports
+            cables.append(port)
         for c in cables:
             self._write_star_constraints(port)
             self.file.write(self.indent_count * vt.SPACE)
@@ -280,7 +279,8 @@ class Composer:
         for p in out_port.pins:
             out_pins.append(instance.pins[p])
         in_wires, in_cables = self._all_wires_and_cables_from_pinset(in_pins)
-        out_wires, out_cables = self._all_wires_and_cables_from_pinset(out_pins)
+        out_wires, out_cables = self._all_wires_and_cables_from_pinset(
+            out_pins)
         assert not self._is_pinset_concatenated(in_pins, in_wires[0].cable.name), self._error_string(
             "multiple cables appear to be connected to a single assignment input", instance)
         assert not self._is_pinset_concatenated(out_pins, out_wires[0].cable.name), self._error_string(
@@ -400,7 +400,8 @@ class Composer:
     def _write_name(self, o):
         '''write the name of an o. this is split out to give an error message if the name is not set
         In the future this could be changed to add a name to os that do not have a name set'''
-        assert o.name is not None, self._error_string("name of o is not set", o)
+        assert o.name is not None, self._error_string(
+            "name of o is not set", o)
         if o.name[0] == '\\':
             assert o.name[-1] == ' ', self._error_string(
                 "the o name starts with escape and does not end with a space.", o)
@@ -442,17 +443,19 @@ class Composer:
         lower_bundle = bundle.lower_index
         upper_bundle = lower_bundle + width - 1
 
-        #intended logic
-        #the bundle is a single bit: assert indicies are within but nothing to be written
-        #the bundle is multibit and the indicies match the upper and lower(or none): nothing to be written
-        #the bundle is multibit but the indicies match each other or one is none: write a single index
-        #the bundle is multibit but the indicies don't match each other: write both indicies
+        # intended logic
+        # the bundle is a single bit: assert indicies are within but nothing to be written
+        # the bundle is multibit and the indicies match the upper and lower(or none): nothing to be written
+        # the bundle is multibit but the indicies match each other or one is none: write a single index
+        # the bundle is multibit but the indicies don't match each other: write both indicies
 
         if width == 1:
             assert (low_index == None or low_index == lower_bundle), \
-                self._error_string("attempted to index bundle out of bounds at " + str(low_index), bundle)
+                self._error_string(
+                    "attempted to index bundle out of bounds at " + str(low_index), bundle)
             assert (high_index == None or high_index == upper_bundle), \
-                self._error_string("attempted to index bundle out of bounds at " + str(high_index), bundle)
+                self._error_string(
+                    "attempted to index bundle out of bounds at " + str(high_index), bundle)
             return
         elif (low_index == lower_bundle and high_index == upper_bundle) or (low_index == None and high_index == None):
             return
@@ -460,23 +463,27 @@ class Composer:
             index = low_index
             if index is None:
                 index = high_index
-            #this assertion checks the logic of this if statement
-            assert index is not None, self._error_string("if both high and low indicies are None no brackets need to be written", bundle)
-            #the following assertion will check the inputs to the function
+            # this assertion checks the logic of this if statement
+            assert index is not None, self._error_string(
+                "if both high and low indicies are None no brackets need to be written", bundle)
+            # the following assertion will check the inputs to the function
             assert index >= lower_bundle and index <= upper_bundle,\
-                self._error_string("attempted to write an index out of bounds: " + str(index), bundle)
+                self._error_string(
+                    "attempted to write an index out of bounds: " + str(index), bundle)
             self.file.write("[" + str(index) + "]")
         else:
-            #first assertion is an internal error, check the if elif logic here.
+            # first assertion is an internal error, check the if elif logic here.
             assert low_index != high_index and low_index is not None and high_index is not None,\
-                self._error_string("a single value needs to be written if any of these conditions are true ", bundle)
-            #these assertions highlight issues with the input to the function
+                self._error_string(
+                    "a single value needs to be written if any of these conditions are true ", bundle)
+            # these assertions highlight issues with the input to the function
             assert low_index >= lower_bundle and low_index <= upper_bundle,\
-                self._error_string("attempted to write an index out of bounds: " + str(low_index), bundle)
+                self._error_string(
+                    "attempted to write an index out of bounds: " + str(low_index), bundle)
             assert high_index >= lower_bundle and high_index <= upper_bundle,\
-                self._error_string("attempted to write an index out of bounds: " + str(high_index), bundle)
+                self._error_string(
+                    "attempted to write an index out of bounds: " + str(high_index), bundle)
             self.file.write("[" + str(high_index) + ":" + str(low_index) + "]")
-
 
     ###############################################################################
     # helper functions for composing
