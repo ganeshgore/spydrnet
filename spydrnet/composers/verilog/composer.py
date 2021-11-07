@@ -78,7 +78,9 @@ class Composer:
         pass  # not currently implemented, just pass
 
     def _write_star_constraints(self, o):
-        if "VERILOG.InlineConstraints" in o and len(o["VERILOG.InlineConstraints"]) != 0:
+        if "VERILOG.InlineConstraints" in o and \
+                len(o["VERILOG.InlineConstraints"]) != 0 and \
+                self.skip_constrains == False:
             dictionary = o["VERILOG.InlineConstraints"]
             self.file.write(vt.OPEN_PARENTHESIS)
             self.file.write(vt.STAR)
