@@ -6,7 +6,7 @@ import spydrnet.parsers.verilog.verilog_tokens as vt
 
 class Composer:
 
-    def __init__(self, definition_list=[], write_blackbox=True, skip_constrains=False):
+    def __init__(self, definition_list=[], write_blackbox=True, skip_constraints=False):
         """ Write a verilog netlist from SDN netlist
 
         parameters
@@ -25,7 +25,7 @@ class Composer:
         self.indent_count = 4  # set the indentation level for various components
         self.write_blackbox = write_blackbox
         self.definition_list = definition_list
-        self.skip_constrains = skip_constrains
+        self.skip_constraints = skip_constraints
 
     def run(self, ir, file_out="out.v"):
         self._open_file(file_out)
@@ -80,7 +80,7 @@ class Composer:
     def _write_star_constraints(self, o):
         if "VERILOG.InlineConstraints" in o and \
                 len(o["VERILOG.InlineConstraints"]) != 0 and \
-                self.skip_constrains == False:
+                self.skip_constraints == False:
             dictionary = o["VERILOG.InlineConstraints"]
             self.file.write(vt.OPEN_PARENTHESIS)
             self.file.write(vt.STAR)
