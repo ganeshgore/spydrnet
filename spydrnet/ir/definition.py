@@ -463,7 +463,8 @@ class Definition(FirstClassElement):
         clone leaving all references in tact.
         the element can then either be ripped or ripped and replaced"""
         assert self not in memo, "the object should not have been copied twice in this pass"
-        c = Definition()
+        from spydrnet.ir import Definition as DefinitionExtended
+        c = DefinitionExtended()
         memo[self] = c
         c._data = deepcopy(self._data)
         c._library = None

@@ -147,7 +147,8 @@ class Instance(FirstClassElement):
         The instance can then either be ripped or ripped and replaced
         """
         assert self not in memo, "the object should not have been copied twice in this pass"
-        c = Instance()
+        from spydrnet.ir import Instance as InstanceExtended
+        c = InstanceExtended()
         memo[self] = c
         c._parent = None
         for inner_pin, outer_pin in self._pins.items():
