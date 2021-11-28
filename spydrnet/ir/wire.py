@@ -144,7 +144,8 @@ class Wire(Element):
         clone leaving all references in tact.
         the element can then either be ripped or ripped and replaced"""
         assert self not in memo, "the object should not have been copied twice in this pass"
-        c = Wire()
+        from spydrnet.ir import Wire as ExtendedWire
+        c = ExtendedWire()
         memo[self] = c
         c._cable = None
         # shallow copy the list so that it retains its pin references
