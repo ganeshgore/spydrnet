@@ -93,9 +93,10 @@ stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 logger.addHandler(stream_handler)
 
-def enable_file_logging(LOG_LEVEL=None):
+
+def enable_file_logging(LOG_LEVEL=None, filename=""):
     LOG_LEVEL = LOG_LEVEL or "INFO"
-    file_handler = logging.FileHandler("_spydrnet.log", mode='w')
+    file_handler = logging.FileHandler("_" + filename + "_spydrnet.log", mode='w')
     file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
     file_handler.setLevel(eval(f"logging.{LOG_LEVEL}"))
     logger.addHandler(file_handler)
