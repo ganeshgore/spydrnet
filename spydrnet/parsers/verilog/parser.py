@@ -640,6 +640,14 @@ class VerilogParser:
         cable["VERILOG.InlineConstraints"] = properties
 
         token = self.next_token()
+        while (token == vt.COMMA):
+            token = self.next_token()
+            name = token
+            cable = self.create_or_update_cable(
+                name, left_index=left, right_index=right, var_type=var_type)
+            cable["VERILOG.InlineConstraints"] = properties
+            token = self.next_token()
+            
         assert token == vt.SEMI_COLON, self.error_string(
             vt.SEMI_COLON, "to end cable declaration", token)
 
