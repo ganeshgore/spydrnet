@@ -1,13 +1,10 @@
-from spydrnet.ir import FirstClassElement
-from spydrnet.ir import Port
-from spydrnet.ir import Cable
-from spydrnet.ir import Instance
-from spydrnet.ir import OuterPin
-from spydrnet.ir.views.listview import ListView
-from spydrnet.ir.views.setview import SetView
+from copy import copy, deepcopy, error
+
 from spydrnet.global_state import global_callback
 from spydrnet.global_state.global_callback import _call_create_definition
-from copy import deepcopy, copy, error
+from spydrnet.ir import Cable, FirstClassElement, Instance, OuterPin, Port
+from spydrnet.ir.views.listview import ListView
+from spydrnet.ir.views.setview import SetView
 
 
 class Definition(FirstClassElement):
