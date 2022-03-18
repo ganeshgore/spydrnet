@@ -6,7 +6,7 @@ import spydrnet.parsers.verilog.verilog_tokens as vt
 
 class Composer:
 
-    def __init__(self, definition_list=[], write_blackbox=True, skip_constraints=False):
+    def __init__(self, definition_list=[], write_blackbox=True, skip_constraints=False, sort_all=False):
         """ Write a verilog netlist from SDN netlist
 
         parameters
@@ -26,6 +26,7 @@ class Composer:
         self.write_blackbox = write_blackbox
         self.definition_list = definition_list
         self.skip_constraints = skip_constraints
+        self.sort_all = sort_all
 
     def run(self, ir, file_out="out.v"):
         self._open_file(file_out)
@@ -357,7 +358,7 @@ class Composer:
         self.file.write(vt.OPEN_PARENTHESIS)
         self.file.write(vt.NEW_LINE)
         first = True
-        for p in sorted(instance.reference.ports, key=lambda x: f"{str(x.direction)}_{x.name}"):
+        for p in sorted(instance.reference.ports, key=lambda x: f"{str(x.direction)}_{x.name}") if self.sort_all else instance.reference.ports:
             if not first:
                 self.file.write(vt.COMMA)
                 self.file.write(vt.NEW_LINE)
