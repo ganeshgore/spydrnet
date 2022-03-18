@@ -357,7 +357,7 @@ class Composer:
         self.file.write(vt.OPEN_PARENTHESIS)
         self.file.write(vt.NEW_LINE)
         first = True
-        for p in instance.reference.ports:
+        for p in sorted(instance.reference.ports, key=lambda x: f"{str(x.direction)}_{x.name}"):
             if not first:
                 self.file.write(vt.COMMA)
                 self.file.write(vt.NEW_LINE)
