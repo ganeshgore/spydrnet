@@ -46,6 +46,10 @@ class Composer:
                 if definition not in self.written:
                     self._write_module(definition)
 
+    def _sorted(self, iterator, sort_by):
+        return sorted(iterator, key=lambda x: sort_by.format(x=x)) \
+            if self.sort_all else iterator
+
     def _write_header(self, netlist):
         self.file.write("//Generated from netlist by SpyDrNet\n")
         self.file.write("//netlist name: " + netlist.name + "\n")
@@ -59,7 +63,7 @@ class Composer:
             if definition in self.written:
                 continue
             self.written.add(definition)
-            for c in definition.children:
+            for c in self._sorted(definition.children, "{x.reference.name}_{x.name}"):
                 if c.reference not in self.written:
                     to_write.append(c.reference)
             assert definition.name is not None, self._error_string(
@@ -358,7 +362,7 @@ class Composer:
         self.file.write(vt.OPEN_PARENTHESIS)
         self.file.write(vt.NEW_LINE)
         first = True
-        for p in sorted(instance.reference.ports, key=lambda x: f"{str(x.direction)}_{x.name}") if self.sort_all else instance.reference.ports:
+        for p in self._sorted(instance.reference.ports, "{x.direction}_{x.name}"):
             if not first:
                 self.file.write(vt.COMMA)
                 self.file.write(vt.NEW_LINE)
