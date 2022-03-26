@@ -20,17 +20,13 @@ import sys
 # This logger creates stdout and file stream handlers
 # LOG_LEVEL for file handler can be dynamically changes durign runtime
 # by defualt log file (_spydrnet.log) will be creted in the script directory
-LOG_FORMAT = "%(levelname)5s %(filename)s:%(lineno)s (%(threadName)10s) - %(message)s"
+LOG_FORMAT = "%(levelname)10s %(filename)s:%(lineno)s (%(threadName)10s) - %(message)s"
 
 logger = logging.getLogger('spydrnet_logs')
 # This is global log level other logger can not have lower level than this
-logger.setLevel(logging.DEBUG)
-
-stream_handler = logging.StreamHandler(sys.stdout)
 LOG_LEVEL = logging.getLevelName(os.getenv("SPYDRNET_LOG_LEVEL", "INFO"))
-stream_handler.setLevel(LOG_LEVEL)
-stream_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-logger.addHandler(stream_handler)
+logger.setLevel(LOG_LEVEL)
+logging.Formatter(LOG_FORMAT)
 
 
 def enable_file_logging(LOG_LEVEL=None, filename=""):
