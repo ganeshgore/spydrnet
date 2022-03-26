@@ -428,11 +428,16 @@ class Composer:
 
         if width == 1 and bundle.lower_index == 0:
             return  # no need to write because this is assumed
-
         self.file.write(vt.OPEN_BRACKET)
-        self.file.write(str(bundle.lower_index + width - 1))
-        self.file.write(vt.COLON)
-        self.file.write(str(bundle.lower_index))
+        if bundle.is_downto:
+            self.file.write(str(bundle.lower_index + width - 1))
+            self.file.write(vt.COLON)
+            self.file.write(str(bundle.lower_index))
+        else:
+            self.file.write(str(bundle.lower_index))
+            self.file.write(vt.COLON)
+            self.file.write(str(bundle.lower_index + width - 1))
+
         self.file.write(vt.CLOSE_BRACKET)
 
     def _write_brackets(self, bundle, low_index, high_index):
