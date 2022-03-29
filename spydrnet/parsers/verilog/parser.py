@@ -1119,6 +1119,7 @@ class VerilogParser:
         if left_index is not None and right_index is not None:
             in_lower = min(left_index, right_index)
             in_upper = max(left_index, right_index)
+            cable.is_downto = right_index <= left_index
         elif left_index is not None:
             in_lower = left_index
             in_upper = left_index
