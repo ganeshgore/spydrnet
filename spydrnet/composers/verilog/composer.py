@@ -496,7 +496,11 @@ class Composer:
             assert high_index >= lower_bundle and high_index <= upper_bundle,\
                 self._error_string(
                     "attempted to write an index out of bounds: " + str(high_index), bundle)
-            self.file.write("[" + str(high_index) + ":" + str(low_index) + "]")
+            if bundle.is_downto:
+                self.file.write("[" + str(high_index) + ":" + str(low_index) + "]")
+            else:
+                self.file.write(
+                    "[" + str(low_index) + ":" + str(high_index) + "]")
 
     ###############################################################################
     # helper functions for composing
