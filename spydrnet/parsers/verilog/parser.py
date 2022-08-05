@@ -647,7 +647,7 @@ class VerilogParser:
                 name, left_index=left, right_index=right, var_type=var_type)
             cable["VERILOG.InlineConstraints"] = properties
             token = self.next_token()
-            
+
         assert token == vt.SEMI_COLON, self.error_string(
             vt.SEMI_COLON, "to end cable declaration", token)
 
@@ -852,7 +852,7 @@ class VerilogParser:
             assert token[1] == vt.SINGLE_QUOTE, self.error_string(vt.SINGLE_QUOTE, "in the constant", token)
             assert token[2] == 'b', self.error_string('b', "in the constant", token)
             assert token[3] in ["0", "1", "x", "X", "z", "Z"], self.error_string("one of 0, 1, x, X, z, Z", "represent the constant value after '", token)
-            name = "\\<const" + token[2] + "> "
+            name = "\\<const" + token[3] + "> "
         elif vt.is_numeric(token[0]):
             assert False, self.error_string("single bit constant", "multibit constants not supported", token)
         else:
