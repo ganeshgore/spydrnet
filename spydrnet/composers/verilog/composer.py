@@ -6,7 +6,7 @@ import spydrnet.parsers.verilog.verilog_tokens as vt
 
 class Composer:
 
-    def __init__(self, definition_list=[], write_blackbox=True, skip_constraints=False, sort_all=False):
+    def __init__(self, definition_list=[], write_blackbox=True, skip_constraints=False, sort_all=False, show_assign_instance_name=False):
         """ Write a verilog netlist from SDN netlist
 
         parameters
@@ -27,6 +27,7 @@ class Composer:
         self.definition_list = definition_list
         self.skip_constraints = skip_constraints
         self.sort_all = sort_all
+        self.show_assign_instance_name = show_assign_instance_name
 
     def run(self, ir, file_out="out.v"):
         self._open_file(file_out)
@@ -305,6 +306,8 @@ class Composer:
         li = self._index_of_wire_in_cable(in_wires[0])
         self._write_bundle_with_indicies(in_cables[0], li, hi)
         self.file.write(vt.SEMI_COLON)
+        if self.show_assign_instance_name:
+            self.file.write(f" // {instance.name}[{instance.reference.name}]")
         self.file.write(vt.NEW_LINE)
 
     def _write_module_parameters(self, definition):
@@ -497,7 +500,8 @@ class Composer:
                 self._error_string(
                     "attempted to write an index out of bounds: " + str(high_index), bundle)
             if bundle.is_downto:
-                self.file.write("[" + str(high_index) + ":" + str(low_index) + "]")
+                self.file.write(
+                    "[" + str(high_index) + ":" + str(low_index) + "]")
             else:
                 self.file.write(
                     "[" + str(low_index) + ":" + str(high_index) + "]")
