@@ -871,13 +871,6 @@ class VerilogParser:
         cable = self.create_or_update_cable(
             name, left_index=left, right_index=right)
 
-        # if left and right index is not given copy it from existing cable
-        if left is None:
-            left = cable.lower_index + len(cable.wires)
-        if right is None:
-            right = cable.lower_index
-        left, right = (left, right) if cable.is_downto else (right, left)
-
         return cable, left, right
 
     def parse_brackets(self):
