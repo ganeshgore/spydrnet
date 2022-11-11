@@ -1052,7 +1052,7 @@ class VerilogParser:
             wires.append(cable.wires[index])
 
         else:
-            for w in cable.wires:
+            for w in (cable.wires[::-1] if cable.is_downto else cable.wires):
                 wires.append(w)
 
         return wires
