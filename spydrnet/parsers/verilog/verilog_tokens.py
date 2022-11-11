@@ -61,6 +61,7 @@ INTEGER = 'integer'
 TRI0 = 'tri0'
 TRI1 = 'tri1'
 DEFPARAM = 'defparam'
+DEFUALT_NETTYPE = "`default_nettype"
 
 #SET OF ALL THINGS THAT WILL END AN IDENTIFIER IF THEY ARE NOT ESCAPED.
 #elif ch in {'(', ')', '.', ',', ';', '[', ']', ':', "{", "}", "*", "#", "`"}:

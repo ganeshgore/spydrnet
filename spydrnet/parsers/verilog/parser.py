@@ -233,6 +233,9 @@ class VerilogParser:
             elif token.split(maxsplit=1)[0] == vt.TIMESCALE:
                 token = self.next_token()
                 time_scale = token.split(maxsplit=1)[1]
+            elif token.split(maxsplit=1)[0] == vt.DEFUALT_NETTYPE:
+                # print(f"Skipped parsing {token}")
+                token = self.next_token()
             else:
                 pass
                 assert False, self.error_string(
