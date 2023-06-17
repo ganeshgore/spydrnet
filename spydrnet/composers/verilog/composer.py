@@ -174,7 +174,7 @@ class Composer:
         self.file.write(vt.NEW_LINE)
 
     def _write_module_body_ports(self, definition):
-        for p in definition.ports:
+        for p in self._sorted(definition.ports, "{x.direction}_{x.name}"):
             self._write_module_body_port(p)
         self.file.write(vt.NEW_LINE)
 
@@ -183,7 +183,7 @@ class Composer:
         if len(cables) == 0:
             # adding the port will let composer to still print out disconnected ports
             cables.append(port)
-        for c in cables:
+        for c in self._sorted(cables, "{x.name}"):
             self._write_star_constraints(port)
             self.file.write(self.indent_count * vt.SPACE)
             self.file.write(self.direction_string_map[port.direction])
@@ -194,7 +194,7 @@ class Composer:
             self.file.write(vt.NEW_LINE)
 
     def _write_module_body_cables(self, definition):
-        for c in definition.cables:
+        for c in self._sorted(definition.cables, "{x.name}"):
             self._write_module_body_cable(c)
         self.file.write(vt.NEW_LINE)
 
@@ -232,7 +232,7 @@ class Composer:
     def _write_module_header_ports(self, definition):
         self.file.write(vt.OPEN_PARENTHESIS)
         first = True
-        for p in definition.ports:
+        for p in self._sorted(definition.ports, "{x.name}"):
             if not first:
                 self.file.write(vt.COMMA)
             self.file.write(vt.NEW_LINE)
@@ -365,7 +365,7 @@ class Composer:
         self.file.write(vt.OPEN_PARENTHESIS)
         self.file.write(vt.NEW_LINE)
         first = True
-        for p in self._sorted(instance.reference.ports, "{x.direction}_{x.name}"):
+        for p in self._sorted(instance.reference.ports, "{x.name}"):
             if not first:
                 self.file.write(vt.COMMA)
                 self.file.write(vt.NEW_LINE)
