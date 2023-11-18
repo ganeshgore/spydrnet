@@ -261,7 +261,7 @@ class Composer:
             self._write_name(port)
 
     def _write_assignments(self, definition):
-        for c in definition.children:
+        for c in self._sorted(definition.children, "{x.reference.name}_{x.name}"):
             if c.reference.library.name == "SDN_VERILOG_ASSIGNMENT":
                 self._write_assignment(c)
 
