@@ -653,7 +653,7 @@ class TestVerilogParser(unittest.TestCase):
         c2.create_wires(16)
         c3 = my_def.create_cable()
         c3.name = "preexisting3"  # [19:16]
-        c3.is_downto = False
+        c3.is_downto = True
         c3.lower_index = 16
         c3.create_wires(4)
 
@@ -719,6 +719,7 @@ class TestVerilogParser(unittest.TestCase):
 
     def test_add_to_front_of_cable(self):
         parser, c1, c2, c3 = self.init_cable_creation()
+        # name,left,right,type,cable,expected_lower,expected_width, expected_downto
 
         tests = [
             ("preexisting1", 15, 0, None, c1, 0, 16),
@@ -790,10 +791,10 @@ class TestVerilogParser(unittest.TestCase):
         # i don't think the cable downto-ness should ever change. this is tested in the add to cable helper
         parser, c1, c2, c3 = self.init_cable_creation()
 
-        tests = [
-            ("preexisting1", 15, 8, None, c1, 8, 8),
-            ("preexisting1", 8, 15, None, c1, 8, 8),
-        ]
+        tests = [("preexisting1", 15, 8, None, c1, 8, 8)]
+        self.add_to_cable_helper(tests, parser)
+        c1.is_downto = False
+        tests = [("preexisting1", 8, 15, None, c1, 8, 8)]
         self.add_to_cable_helper(tests, parser)
 
     def test_cable_prepend_wires(self):
@@ -1658,7 +1659,7 @@ class TestVerilogParser(unittest.TestCase):
         ]
         tokenizer = self.TestTokenizer(tokens)
         parser.tokenizer = tokenizer
-        
+
         assigns_list = parser.parse_assign()
         self.assertEqual(len(assigns_list), 1, "Number of assigned wires")
         c1, o_left, o_right, c2, i_left, i_right = assigns_list[0]
@@ -1668,7 +1669,7 @@ class TestVerilogParser(unittest.TestCase):
         assert o_right is None
         assert i_left is None
         assert i_right is None
-        
+
         assigns_list = parser.parse_assign()
         self.assertEqual(len(assigns_list), 1, "Number of assigned wires")
         c1, o_left, o_right, c2, i_left, i_right = assigns_list[0]
@@ -1678,7 +1679,7 @@ class TestVerilogParser(unittest.TestCase):
         assert o_right is None
         assert i_left is None
         assert i_right is None
-        
+
 
     def test_parse_assign_bus(self):
         """make sure individual bus bits are assigned correctly"""
@@ -1686,25 +1687,25 @@ class TestVerilogParser(unittest.TestCase):
         parser.netlist = sdn.Netlist()
         parser.current_definition = sdn.Definition()
         tokens = [
-            "assign", 
-            "Q", 
-            "[", 
-            "1", 
-            ":", 
-            "0", 
-            "]", 
-            "=", 
-            "A", 
-            "[", 
-            "0", 
-            ":", 
-            "1", 
-            "]", 
+            "assign",
+            "Q",
+            "[",
+            "1",
+            ":",
+            "0",
+            "]",
+            "=",
+            "A",
+            "[",
+            "0",
+            ":",
+            "1",
+            "]",
             ";"
         ]
         tokenizer = self.TestTokenizer(tokens)
         parser.tokenizer = tokenizer
-        
+
         assigns_list = parser.parse_assign()
         self.assertEqual(len(assigns_list), 2, "Number of assigned wires in bundle")
         c1, o_left, o_right, c2, i_left, i_right = assigns_list[0]
@@ -1721,7 +1722,7 @@ class TestVerilogParser(unittest.TestCase):
         assert o_right is None
         assert i_left == 1
         assert i_right is None
-        
+
     def test_parse_assign_bundle(self):
         """make sure correct objects from bundle are matched to individual bus bits"""
         parser = VerilogParser()
@@ -1735,7 +1736,7 @@ class TestVerilogParser(unittest.TestCase):
             ":",
             "0",
             "]",
-            "=", 
+            "=",
             "{",
             "A",
             "[",
@@ -1750,7 +1751,7 @@ class TestVerilogParser(unittest.TestCase):
         ]
         tokenizer = self.TestTokenizer(tokens)
         parser.tokenizer = tokenizer
-        
+
         assigns_list = parser.parse_assign()
         self.assertEqual(len(assigns_list), 4, "Number of assigned wires in bundle")
         c1, o_left, o_right, c2, i_left, i_right = assigns_list[0]
@@ -1783,7 +1784,7 @@ class TestVerilogParser(unittest.TestCase):
         assert o_right is None
         assert i_left is None
         assert i_right is None
-        
+
 
     ############################################
     ##Parse star parameters

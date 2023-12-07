@@ -104,7 +104,7 @@ class Cable(Bundle):
 
     def add_wire(self, wire, position=None):
         """
-        Adds a wire to the cable at the given position. This wire must not belong to 
+        Adds a wire to the cable at the given position. This wire must not belong to
         a cable already
 
         parameters
@@ -215,7 +215,8 @@ class Cable(Bundle):
     def __str__(self):
         """Re-define the print function so it is easier to read"""
         rep = str(type(self))
-        rep = rep[:-1] + "; "
+        rep = rep[:-1] + '; '
+        rep += f" [{self.name}] "
         if self.is_downto is not None and self.is_downto is True:
             rep += "is_downto: True; "
         else:
