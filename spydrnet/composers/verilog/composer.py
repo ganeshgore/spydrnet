@@ -503,13 +503,15 @@ class Composer:
         # self._write_name(port)
         # self.file.write(vt.OPEN_PARENTHESIS)
         pins = []
+        is_downto = True
         for p in port.pins:
             pins.append(instance.pins[p])
         if pins[0].wire is not None:
             name = pins[0].wire.cable.name
+            is_downto = pins[0].wire.cable.is_downto
         else:
             name = None
-        concatenated = self._is_pinset_concatenated(pins, name)
+        concatenated = self._is_pinset_concatenated(pins, name, is_downto)
         wires = []
         pin_list = list(p for p in port.pins)
         pin_list.sort(reverse=True, key=self.pin_sort_func)
@@ -537,13 +539,15 @@ class Composer:
         self._write_name(port)
         self.file.write(vt.OPEN_PARENTHESIS)
         pins = []
+        is_downto = True
         for p in port.pins:
             pins.append(instance.pins[p])
         if pins[0].wire is not None:
             name = pins[0].wire.cable.name
+            is_downto = pins[0].wire.cable.is_downto
         else:
             name = None
-        concatenated = self._is_pinset_concatenated(pins, name)
+        concatenated = self._is_pinset_concatenated(pins, name, is_downto)
         wires = []
         sorted_wires = []
         pin_list = list(p for p in pins)
@@ -717,7 +721,7 @@ class Composer:
             index += 1
         return None
 
-    def _is_pinset_concatenated(self, pins, name):
+    def _is_pinset_concatenated(self, pins, name, is_downto=1):
         aliased = False
         now_none = False
         last_index = None
@@ -733,7 +737,7 @@ class Composer:
                 if last_index is None:
                     last_index = index
                 else:
-                    if index != last_index + 1:
+                    if (index-last_index) != (1, -1)[is_downto]:
                         aliased = True
                         break
                 last_index = index
