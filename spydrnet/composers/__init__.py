@@ -4,7 +4,14 @@ from spydrnet.composers.verilog.composer import Composer as VerilogComposer
 from spydrnet.composers.eblif.eblif_composer import EBLIFComposer
 
 
-def compose(netlist, filename, *args, **kwargs):
+def compose(
+    netlist,
+    filename,
+    definition_list=[],
+    write_blackbox=True,
+    write_eblif_cname=True,
+    defparam=False, *args, **kwargs
+):
     """To compose a file into a netlist format"""
     extension = Path(filename).suffix
     extension_lower = extension.lower()
@@ -14,8 +21,7 @@ def compose(netlist, filename, *args, **kwargs):
             raise Exception("netlist.name undefined")
         composer.run(netlist, filename)
     elif extension_lower in [".v", ".vh", ".vm"]:
-        from spydrnet.composers.verilog.composer import Composer
-        composer = Composer(*args, **kwargs)
+        composer = VerilogComposer(definition_list, write_blackbox, defparam, *args, **kwargs)
         composer.run(netlist, file_out=filename)
     elif extension_lower in [".eblif", ".blif"]:
         composer = EBLIFComposer(write_blackbox, write_eblif_cname)
