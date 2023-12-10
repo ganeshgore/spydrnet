@@ -217,7 +217,7 @@ class Composer:
 
     def _write_module_body_ports(self, definition):
         self.module_body_ports_written = []
-        for p in definition.ports:
+        for p in self._sorted(definition.ports, "{x.direction}_{x.name}"):
             self._write_module_body_port(p)
         self.file.write(vt.NEW_LINE)
 
@@ -226,7 +226,7 @@ class Composer:
         if len(cables) == 0:
             # adding the port will let composer to still print out disconnected ports
             cables.append(port)
-        for c in cables:
+        for c in self._sorted(cables, "{x.name}"):
             if c.name in self.module_body_ports_written:
                 continue
             self.module_body_ports_written.append(c.name)
@@ -242,7 +242,7 @@ class Composer:
     def _write_module_body_cables(self, definition):
         cable_list = list(c for c in definition.cables)
         cable_list.reverse()
-        for c in cable_list:
+        for c in self._sorted(cable_list, "{x.name}"):
             if c.name in [vt.CONST0, vt.CONST1] and not self._has_driver(c):
                 continue
             self._write_module_body_cable(c)
@@ -318,7 +318,7 @@ class Composer:
     def _write_module_header_ports(self, definition):
         self.file.write(vt.OPEN_PARENTHESIS)
         first = True
-        for p in definition.ports:
+        for p in self._sorted(definition.ports, "{x.name}"):
             if not first:
                 self.file.write(vt.COMMA)
             self.file.write(vt.NEW_LINE)
@@ -354,7 +354,7 @@ class Composer:
             self._write_name(port)
 
     def _write_assignments(self, definition):
-        for c in definition.children:
+        for c in self._sorted(definition.children, "{x.reference.name}_{x.name}"):
             if c.reference.library.name == "SDN_VERILOG_ASSIGNMENT":
                 self._write_assignment(c)
 
@@ -479,7 +479,7 @@ class Composer:
         self.file.write(vt.OPEN_PARENTHESIS)
         self.file.write(vt.NEW_LINE)
         first = True
-        for p in self._sorted(instance.reference.ports, "{x.direction}_{x.name}"):
+        for p in self._sorted(instance.reference.ports, "{x.name}"):
             if not first:
                 self.file.write(vt.COMMA)
                 self.file.write(vt.NEW_LINE)
