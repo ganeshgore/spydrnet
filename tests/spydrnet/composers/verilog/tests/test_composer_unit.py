@@ -205,6 +205,57 @@ class TestVerilogComposerUnit(unittest.TestCase):
             "//Generated from netlist by SpyDrNet\n//netlist name: Netlist_name\n"
         )
 
+    def test_write_concatenation(self):
+        composer = self.initialize_tests()
+
+        C1 = sdn.Cable("C1", is_downto=True, is_scalar=True)
+        C1_0 = C1.create_wire()
+
+        C2 = sdn.Cable("C2", is_downto=True)
+        C2_0 = C2.create_wire()
+        C2_1 = C2.create_wire()
+        C2_2 = C2.create_wire()
+        C2_3 = C2.create_wire()
+
+        C3 = sdn.Cable("C3", is_downto=False)
+        C3_0 = C3.create_wire()
+        C3_1 = C3.create_wire()
+        C3_2 = C3.create_wire()
+        C3_3 = C3.create_wire()
+
+        composer._write_concatenation([C1_0])
+        assert composer.file.compare("{C1}")
+        composer.file.clear()
+
+        composer._write_concatenation([C2_0, C1_0])
+        assert composer.file.compare("{C2[0], C1}")
+        composer.file.clear()
+
+        composer._write_concatenation([C2_1, C2_0, C1_0])
+        assert composer.file.compare("{C2[1:0], C1}")
+        composer.file.clear()
+
+        composer._write_concatenation([C2_3, C2_2, C2_1, C2_0])
+        assert composer.file.compare("{C2[3:0]}")
+        composer.file.clear()
+
+
+        # Big endian (Expanded)
+        composer._write_concatenation([C3_1, C3_0, C1_0])
+        assert composer.file.compare("{C3[1], C3[0], C1}")
+        composer.file.clear()
+
+        # Big endian (Compact)
+        composer._write_concatenation([C3_0, C3_1, C1_0])
+        assert composer.file.compare("{C3[0:1], C1}")
+        composer.file.clear()
+
+        # Big endian (Compact)
+        composer._write_concatenation([C3_0, C3_1, C3_2, C3_3])
+        assert composer.file.compare("{C3[0:3]}")
+        composer.file.clear()
+
+
     def test_write_brackets_single_bit(self):
         # def _write_brackets(self, bundle, low_index, high_index):
         composer = self.initialize_tests()

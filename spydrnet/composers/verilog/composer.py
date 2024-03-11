@@ -145,6 +145,8 @@ class Composer:
         """write out a bundle name and indicies. in name indicies order.
         useful for cable and port instances"""
         self._write_name(bundle)
+        if not bundle.is_downto:
+            low, high = high, low
         self._write_brackets(bundle, low, high)
 
     def _write_module(self, definition):
@@ -279,7 +281,7 @@ class Composer:
                 if w.cable.name == previous_cable.name:
                     if (index == (previous_index - 1)) and w.cable.is_downto:
                         previous_index = index
-                    elif (index == (previous_index + 1)) and not w.cable.is_downto:
+                    elif (index == (previous_index + 1)) and (not w.cable.is_downto):
                         previous_index = index
                     else:
                         # write the previous and save new stuff
