@@ -1478,7 +1478,8 @@ class VerilogParser:
 
         else:
             temp_wires = list(w for w in cable.wires)
-            temp_wires.reverse()
+            if cable.is_downto:
+                temp_wires.reverse()
             for w in temp_wires:
                 wires.append(w)
 
