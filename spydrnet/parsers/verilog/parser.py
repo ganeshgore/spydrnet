@@ -1468,7 +1468,8 @@ class VerilogParser:
             temp_wires.reverse()
             for w in temp_wires:
                 wires.append(w)
-
+            if not cable.is_downto:
+                wires.reverse()
         elif left is not None or right is not None:
             if left is not None:
                 index = left - cable.lower_index
