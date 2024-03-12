@@ -214,7 +214,7 @@ class Cable(Bundle):
 
     def __str__(self):
         """Re-define the print function so it is easier to read"""
-        rep = str(type(self))
+        rep = super().__str__()
         rep = rep[:-1] + "; "
         if self.is_downto is not None and self.is_downto is True:
             rep += "is_downto: True; "
@@ -224,6 +224,7 @@ class Cable(Bundle):
             rep += "is_scalar: True; "
         else:
             rep += "is_scalar: False; "
+        rep += f"size: {len(self._items())}; "
         rep += "lower index: " + str(self.lower_index)
         rep += ">"
         return rep

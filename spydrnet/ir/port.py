@@ -307,6 +307,15 @@ class Port(Bundle):
         """Re-define the print function so it is easier to read"""
         rep = super().__str__()
         rep = rep[:-1] + "; "
+        if self.is_downto is not None and self.is_downto is True:
+            rep += "is_downto: True; "
+        else:
+            rep += "is_downto: False; "
+        if self.is_scalar is True:
+            rep += "is_scalar: True; "
+        else:
+            rep += "is_scalar: False; "
+        rep += f"size: {len(self._items())}; "
         rep += str(self.direction)
         rep += ">"
         return rep
