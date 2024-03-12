@@ -1632,13 +1632,13 @@ class VerilogParser:
     def postpend_wires(self, cable, count):
         cable.create_wires(count)
 
-    def create_or_update_port_on_instance(self, name, width):
+    def create_or_update_port_on_instance(self, name, width, is_downto=True):
         """returns the set of pins associated with the port on the instance"""
         pins = []
         port = self.create_or_update_port(
             name,
-            left_index=width - 1,
-            right_index=0,
+            left_index=(width - 1) if is_downto else 0,
+            right_index=0 if is_downto else (width - 1),
             definition=self.current_instance.reference,
         )
         for pin in self.current_instance.pins:
