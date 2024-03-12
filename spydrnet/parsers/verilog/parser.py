@@ -1033,6 +1033,7 @@ class VerilogParser:
 
         token = self.peek_token()
 
+        is_downto = True
         if token != vt.CLOSE_PARENTHESIS:
             if token == vt.OPEN_BRACE:
                 wires = self.parse_cable_concatenation()
@@ -1043,8 +1044,11 @@ class VerilogParser:
                 )
                 cable, left, right = cable_lr_list[0]
                 wires = self.get_wires_from_cable(cable, left, right)
+                is_downto = cable.is_downto
 
-            pins = self.create_or_update_port_on_instance(port_name, len(wires))
+            pins = self.create_or_update_port_on_instance(
+                port_name, len(wires), is_downto
+            )
 
             assert len(pins) >= len(wires), self.error_string(
                 "pins length to match or exceed cable.wires length",
