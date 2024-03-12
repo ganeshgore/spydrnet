@@ -751,10 +751,7 @@ class Composer:
                 if last_index is None:
                     last_index = index
                 else:
-                    if (p.wire.cable.is_downto is True) and (index != last_index + 1):
-                        aliased = True
-                        break
-                    if (p.wire.cable.is_downto is False) and (index != last_index - 1):
+                    if index != last_index + 1:
                         aliased = True
                         break
                 last_index = index
