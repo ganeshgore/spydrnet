@@ -344,9 +344,7 @@ class Composer:
         """does not write the input output or width,
         check for concatenation port as well"""
         self.file.write((self.indent_count * vt.SPACE))
-        aliased = self._is_pinset_concatenated(
-            port.pins[::-1] if not port.is_downto else port.pins, port.name
-        )
+        aliased = self._is_pinset_concatenated(port.pins, port.name)
         if aliased:
             wires = []
             pin_list = list(p for p in port.pins)
