@@ -344,7 +344,9 @@ class Composer:
         """does not write the input output or width,
         check for concatenation port as well"""
         self.file.write((self.indent_count * vt.SPACE))
-        aliased = self._is_pinset_concatenated(port.pins, port.name)
+        aliased = self._is_pinset_concatenated(
+            port.pins[::-1] if not port.is_downto else port.pins, port.name
+        )
         if aliased:
             wires = []
             pin_list = list(p for p in port.pins)
@@ -508,7 +510,9 @@ class Composer:
             name = pins[0].wire.cable.name
         else:
             name = None
-        concatenated = self._is_pinset_concatenated(pins, name)
+        concatenated = self._is_pinset_concatenated(
+            pins[::-1] if not port.is_downto else pins, name
+        )
         wires = []
         pin_list = list(p for p in port.pins)
         pin_list.sort(reverse=True, key=self.pin_sort_func)
@@ -542,7 +546,9 @@ class Composer:
             name = pins[0].wire.cable.name
         else:
             name = None
-        concatenated = self._is_pinset_concatenated(pins, name)
+        concatenated = self._is_pinset_concatenated(
+            pins[::-1] if not port.is_downto else pins, name
+        )
         wires = []
         sorted_wires = []
         pin_list = list(p for p in pins)
