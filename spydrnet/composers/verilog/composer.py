@@ -221,6 +221,7 @@ class Composer:
                     self.file.write(to_write)
 
     def _write_module_body_ports(self, definition):
+        self.module_body_ports_written = []
         for p in self._sorted(definition.ports, "{x.direction}_{x.name}"):
             self._write_module_body_port(p)
         self.file.write(vt.NEW_LINE)
