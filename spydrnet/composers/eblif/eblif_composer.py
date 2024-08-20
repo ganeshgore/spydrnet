@@ -4,7 +4,7 @@ import spydrnet as sdn
 
 
 class EBLIFComposer:
-    def __init__(self, write_blackbox, write_cname=True):
+    def __init__(self, write_blackbox=True, write_cname=True):
         self.netlist = None
         self.current_model = None
         self.open_file = None
