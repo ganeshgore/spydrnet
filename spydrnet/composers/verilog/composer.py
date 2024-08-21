@@ -7,7 +7,7 @@ import spydrnet as sdn
 
 class Composer:
 
-    def __init__(self, definition_list=None, write_blackbox=False, defparam = False, reverse=False, sort_all=False,  skip_constraints=False):
+    def __init__(self, definition_list=(), write_blackbox=True, defparam = False, reverse=False, sort_all=False,  skip_constraints=False):
         """ Write a verilog netlist from SDN netlist
 
         parameters
