@@ -392,7 +392,7 @@ class VerilogParser:
             assert token == vt.PARAMETER, self.error_string(
                 vt.PARAMETER, "parameter declaration", token
             )
-            
+
             key, value = self.parse_parameter_keyvalue()
 
             parameter_dictionary[key] = value
@@ -418,31 +418,30 @@ class VerilogParser:
 
         and must come after the associated module
         """
-        
+
         token = self.next_token()
         assert token == vt.PARAMETER, self.error_string(
             vt.PARAMETER, "to being parameter statement", token
         )
-        
+
         token = self.peek_token()
         parameter_dictionary = {}
-        
+
         while token != vt.SEMI_COLON:
             key, value = self.parse_parameter_keyvalue()
             parameter_dictionary[key] = value
-            
+
             token = self.next_token()
             assert token == vt.SEMI_COLON or token == vt.COMMA, self.error_string(
                 ',;', "after parameter declaration", token
             )
-        
+
         assert len(parameter_dictionary) > 0, self.error_string(
             'declarations', "in parameter declaration", token
         )
-        
+
         self.set_definition_parameters(self.current_definition, parameter_dictionary)
-        
-    
+
     def parse_parameter_keyvalue(self):
         """parses and returns key name and assigned value of a parameter declaration"""
 
@@ -475,9 +474,7 @@ class VerilogParser:
         value = token
 
         return key, value
-    
-    
-    
+
     def parse_module_header_ports(self):
         """parse port declarations in the module header and add them to the definition"""
         token = self.next_token()
@@ -535,7 +532,7 @@ class VerilogParser:
             assert len(cable_lr_list) == 1, self.error_string(
                 'one entity declaration', "port aliasing construct", token
             )
-            
+
             cable, left, right = cable_lr_list[0]
             wires = self.get_wires_from_cable(cable, left, right)
 
@@ -587,11 +584,10 @@ class VerilogParser:
                 assert token == vt.CLOSE_BRACE, self.error_string(
                     vt.CLOSE_BRACE, "to end cable concatenation", token
                 )
-
         return wires
 
     def wire_sort_func(self, w):
-        return w.cable.wires.index(w)
+        return w.cable.wires.index(w)*([-1, 1][int(w.cable.is_downto)])
 
     def parse_module_header_port(self):
         """parse the port declaration in the module header"""
@@ -1160,31 +1156,31 @@ class VerilogParser:
         assert token == vt.ASSIGN, self.error_string(
             vt.ASSIGN, "to begin assignment statement", token
         )
-        #separating lhs into single bits
+        # separating lhs into single bits
         lhs_cables_list = self.parse_assign_side_cables()
         token = self.next_token()
         assert token == vt.EQUAL, self.error_string(
             vt.EQUAL, "in assigment statment", token
         )
-        
-        #separating rhs into single bits
+
+        # separating rhs into single bits
         rhs_cables_list = self.parse_assign_side_cables()
-        
+
         token = self.next_token()
         assert token == vt.SEMI_COLON, self.error_string(
             vt.SEMI_COLON, "to terminate assign statement", token
         )
 
-        #matching cable entries from two lists to create
-        #several single-bit assignments
+        # matching cable entries from two lists to create
+        # several single-bit assignments
         assert len(lhs_cables_list) == len(rhs_cables_list), self.error_string(
             "lhs and rhs of similar size", "in assign statement", token)
-        
+
         result_cables_list = []
         for idx in range(0, len(lhs_cables_list)):
             lhs_tuple = lhs_cables_list[idx]
             rhs_tuple = rhs_cables_list[idx]
-            
+
             result_cables_list.append((
                 lhs_tuple[0], lhs_tuple[1], lhs_tuple[2],
                 rhs_tuple[0], rhs_tuple[1], rhs_tuple[2]))
@@ -1192,7 +1188,7 @@ class VerilogParser:
         return result_cables_list
 
     def parse_assign_side_cables(self):
-        #separating left hand-side if it is a bundle
+        # separating left hand-side if it is a bundle
         raw_cables_list = []
         peek_next = self.peek_token()
         if peek_next == vt.OPEN_BRACE:
@@ -1204,8 +1200,8 @@ class VerilogParser:
         else:
             cable_lr_list = self.parse_variable_instantiation()
             raw_cables_list.extend(cable_lr_list)
-        
-        #separating into single bits
+
+        # separating into single bits
         cables_list = []
         for (cable, left, right) in raw_cables_list:
             if left != None and right == None:
@@ -1216,16 +1212,16 @@ class VerilogParser:
                     cables_list.append((cable, left, right))
                     continue
                 else:
-                    #decomposing bus into bits
+                    # decomposing bus into bits
                     left = cable.lower_index
                     right = left + len(cable.wires) - 1
                     if cable.is_downto:
                         left, right = right, left
-              
+
             incr = 1 if left < right else -1
             for idx in range(left, right+incr, incr):
                 cables_list.append((cable, idx, None))
-        
+
         return cables_list
 
     def parse_variable_instantiation(self):
@@ -1237,18 +1233,18 @@ class VerilogParser:
             create a new cable and an inverter block similar to the assign but with an inversion in the block
         """
         token = self.next_token()
-        
+
         names_list = []
-        
+
         if re.match("[0-9]+'", token):
             quote_pos = token.index('\'')
             bits_num = int(token[0:quote_pos])
             bdh_char = token[quote_pos + 1]
-            
+
             bits_entry = token[quote_pos + 2:]
             bits_list = []
-            
-            #need to preserve order as it is to match the other side of expression
+
+            # need to preserve order as it is to match the other side of expression
             if bdh_char == 'b':
                 bits_list = list(bits_entry[::1])
             elif bdh_char == 'd':
@@ -1259,20 +1255,20 @@ class VerilogParser:
                 bits_list = list(bin_data[::1])
             else:
                 assert False, self.error_string('bdh', "in the constant", token)
-            
+
             assert len(bits_list) == bits_num, self.error_string(
                 len(bits_list), "in size of the constant", token
             )
-            
+
             for bit in bits_list:
                 name = "\\<const" + bit + "> "
                 names_list.append(name)
         else:
             names_list.append(token)
-        
+
         result_cables_list = []
-        
-        #processing each name entry
+
+        # processing each name entry
         for name in names_list:
             assert vt.is_valid_identifier(name), self.error_string(
                 "valid port identifier", "for port in instantiation port map", name
@@ -1282,12 +1278,12 @@ class VerilogParser:
             right = None
             if token == vt.OPEN_BRACKET:
                 left, right = self.parse_brackets()
-    
+
             cable = self.create_or_update_cable(
                 name.strip(), left_index=left, right_index=right)
-            
+
             result_cables_list.append((cable, left, right))
-            
+
         return result_cables_list
 
     def parse_brackets(self):
