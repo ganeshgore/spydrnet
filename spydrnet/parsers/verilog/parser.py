@@ -206,10 +206,10 @@ class VerilogParser:
             elif token == vt.MODULE:
                 if primitive_cell:
                     self.parse_primitive()
+                    if self.peek_token() in (vt.END_PRIMITIVE, vt.END_MODULE):
+                        token = self.next_token()
                 else:
                     self.parse_module()
-                if self.peek_token() in (vt.END_PRIMITIVE, vt.END_MODULE):
-                    token = self.next_token()
                 # go ahead and set the extra metadata that we collected to this point
                 if time_scale is not None:
                     self.current_definition["VERILOG.TimeScale"] = time_scale
