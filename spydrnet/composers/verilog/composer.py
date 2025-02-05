@@ -391,8 +391,8 @@ class Composer:
             in_pins.append(instance.pins[p])
         for p in out_port.pins:
             out_pins.append(instance.pins[p])
-        in_pins.sort(reverse=False, key=self.pin_sort_func)
-        out_pins.sort(reverse=True, key=self.pin_sort_func)
+        in_pins.sort(reverse=True, key=self.pin_sort_func)
+        out_pins.sort(reverse=False, key=self.pin_sort_func)
         in_wires, in_cables = self._all_wires_and_cables_from_pinset(in_pins)
         out_wires, out_cables = self._all_wires_and_cables_from_pinset(out_pins)
         self.file.write(vt.ASSIGN)
