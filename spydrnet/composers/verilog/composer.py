@@ -551,8 +551,13 @@ class Composer:
 
         # If its not concatinated and port and cable has different endianness
         # then we need to concatinated it as concatinated
-        if (not concatenated) and (pins[0].wire.cable.is_downto != port.is_downto):
-            concatenated = True
+        if pins[0].wire:
+            if (
+                (not concatenated)
+                and (pins[0].wire.cable.is_downto != port.is_downto)
+                and len(pins) > 1
+            ):
+                concatenated = True
 
         wires = []
         sorted_wires = []
