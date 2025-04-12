@@ -29,14 +29,15 @@ logger = logging.getLogger("spydrnet_logs")
 logger.setLevel(logging.DEBUG)
 
 stream_handler = logging.StreamHandler(sys.stdout)
-LOG_LEVEL = logging.getLevelName(os.getenv("SPYDRNET_LOG_LEVEL", "INFO"))
-stream_handler.setLevel(LOG_LEVEL)
+LOG_LEVEL = os.environ.get("SPYDRNET_LOG_LEVEL", "INFO").upper()
+stream_handler.setLevel(logging._nameToLevel.get(LOG_LEVEL, logging.INFO))
 stream_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 logger.addHandler(stream_handler)
+logger.info("SpyDrNet Logging Initialized")
 
 
 def enable_file_logging(LOG_LEVEL=None, filename=""):
-    LOG_LEVEL = logging.getLevelName(LOG_LEVEL or "INFO")
+    LOG_LEVEL = logging._nameToLevel.get(LOG_LEVEL or "INFO", logging.INFO)
     file_handler = logging.FileHandler("_" + filename + "_spydrnet.log", mode="w")
     file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
     file_handler.setLevel(LOG_LEVEL)
@@ -52,7 +53,7 @@ discovered_plugins = {
     for finder, name, ispkg in pkgutil.iter_modules()
     if name.startswith("spydrnet_")
 }
-logger.debug("Installed Plugins", discovered_plugins.keys())
+logger.debug("Installed Plugins: " + str(discovered_plugins.keys()))
 
 
 def get_active_plugins():
@@ -67,7 +68,9 @@ def get_active_plugins():
     if config_file:
         for plugin in open(config_file, "r").read().split():
             if discovered_plugins.get(plugin, None):
-                if (plugin not in sys.modules) and (plugin not in dir()):  # prevents reimporting over and over again
+                if (plugin not in sys.modules) and (
+                    plugin not in dir()
+                ):  # prevents reimporting over and over again
                     active_plugins.update({plugin: importlib.import_module(plugin)})
                     # print("imported", plugin)
                 else:
@@ -78,7 +81,7 @@ def get_active_plugins():
     return active_plugins
 
 
-logger.debug("Active Plugins", get_active_plugins().keys())
+logger.debug("Active Plugins: " + str(get_active_plugins().keys()))
 
 # Release data
 from spydrnet import release
@@ -139,7 +142,7 @@ def determine_example_netlists_path(download_option, force_download=False):
         response = None
         if not force_download:
             print(
-            "Could not find example netlists. Download to /tmp/spydrnet_example_netlists? y/n"
+                "Could not find example netlists. Download to /tmp/spydrnet_example_netlists? y/n"
             )
             response = input()
         if response == "y" or force_download:
