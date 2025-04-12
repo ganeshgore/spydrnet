@@ -33,7 +33,7 @@ LOG_LEVEL = os.environ.get("SPYDRNET_LOG_LEVEL", "INFO").upper()
 stream_handler.setLevel(logging._nameToLevel.get(LOG_LEVEL, logging.INFO))
 stream_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 logger.addHandler(stream_handler)
-logger.info("SpyDrNet Logging Initialized")
+logger.debug("SpyDrNet Logging Initialized")
 
 
 def enable_file_logging(LOG_LEVEL=None, filename=""):
