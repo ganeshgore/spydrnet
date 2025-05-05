@@ -395,6 +395,7 @@ class Composer:
         out_pins.sort(reverse=False, key=self.pin_sort_func)
         in_wires, in_cables = self._all_wires_and_cables_from_pinset(in_pins)
         out_wires, out_cables = self._all_wires_and_cables_from_pinset(out_pins)
+        self.file.write(vt.SPACE * 4)
         self.file.write(vt.ASSIGN)
         self.file.write(vt.SPACE)
         hi = self._index_of_wire_in_cable(out_wires[-1])
