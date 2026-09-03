@@ -13,6 +13,7 @@ import os
 import pathlib
 import pkgutil
 import sys
+import time
 from pathlib import Path
 import requests
 
@@ -24,11 +25,51 @@ import requests
 # by defualt log file (_spydrnet.log) will be creted in the script directory
 LOG_FORMAT = "%(levelname)5s %(filename)s:%(lineno)s (%(threadName)10s) - %(message)s"
 
+class _ThrottledFlush:
+    """
+    Handler mixin which flushes the stream at most once per FLUSH_INTERVAL
+
+    ``logging.StreamHandler.emit`` flushes after every record, which is a write
+    syscall per line per handler. A netlist transformation logs a line per net it
+    touches, so on a large fabric the flushing costs more than the work being
+    logged. Batching them keeps the log readable while it runs, to within
+    ``SPYDRNET_LOG_FLUSH_INTERVAL`` seconds, and the stream is always flushed in
+    full when the handler is closed, which ``logging.shutdown`` does at exit.
+    Set the interval to 0 to get a flush per record back.
+    """
+
+    FLUSH_INTERVAL = float(os.environ.get("SPYDRNET_LOG_FLUSH_INTERVAL", "1"))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._next_flush = 0.0
+
+    def flush(self):
+        now = time.monotonic()
+        if now >= self._next_flush:
+            self._next_flush = now + self.FLUSH_INTERVAL
+            super().flush()
+
+    def close(self):
+        try:
+            super().flush()
+        finally:
+            super().close()
+
+
+class ThrottledStreamHandler(_ThrottledFlush, logging.StreamHandler):
+    """:class:`logging.StreamHandler` which batches its stream flushes"""
+
+
+class ThrottledFileHandler(_ThrottledFlush, logging.FileHandler):
+    """:class:`logging.FileHandler` which batches its stream flushes"""
+
+
 logger = logging.getLogger("spydrnet_logs")
 # This is global log level other logger can not have lower level than this
 logger.setLevel(logging.DEBUG)
 
-stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler = ThrottledStreamHandler(sys.stdout)
 LOG_LEVEL = os.environ.get("SPYDRNET_LOG_LEVEL", "INFO").upper()
 stream_handler.setLevel(logging._nameToLevel.get(LOG_LEVEL, logging.INFO))
 stream_handler.setFormatter(logging.Formatter(LOG_FORMAT))
@@ -38,7 +79,7 @@ logger.debug("SpyDrNet Logging Initialized")
 
 def enable_file_logging(LOG_LEVEL=None, filename=""):
     LOG_LEVEL = logging._nameToLevel.get(LOG_LEVEL or "INFO", logging.INFO)
-    file_handler = logging.FileHandler("_" + filename + "_spydrnet.log", mode="w")
+    file_handler = ThrottledFileHandler("_" + filename + "_spydrnet.log", mode="w")
     file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
     file_handler.setLevel(LOG_LEVEL)
     logger.addHandler(file_handler)
